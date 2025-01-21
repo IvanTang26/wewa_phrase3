@@ -256,28 +256,14 @@
 
 <!-- 
   =======================================
-       1) CALL FOR ACTION PAGE
-  =======================================
--->
-<div id="call-for-action-page" class="page active">
-  <img
-    id="call-for-action-bg"
-    class="bg-image"
-    src="images/callToActionPage.png"
-    alt="Call-to-action Background"
-  />
-</div>
-
-<!-- 
-  =======================================
        2) START PAGE
   =======================================
 -->
-<div id="start-page" class="page">
+<div id="start-page" class="page active">
   <img
     id="start-bg"
     class="bg-image"
-    src="images/startPage.png"
+    src="./images/startPage.png"
     alt="Start Page Background"
   />
   <div id="countdown-overlay">3</div>
@@ -368,12 +354,10 @@
 /* --------------------------------------------------
    PAGE DOM REFERENCES
 -------------------------------------------------- */
-const callForActionPage = document.getElementById('call-for-action-page');
 const startPage         = document.getElementById('start-page');
 const gamePage          = document.getElementById('game-page');
 const recordPage        = document.getElementById('record-page');
 
-const callForActionBg   = document.getElementById('call-for-action-bg');
 const startBg           = document.getElementById('start-bg');
 
 const scoreText         = document.getElementById('score-text');
@@ -409,13 +393,7 @@ const molePopSound = new Audio('sounds/pop.wav');
 /* --------------------------------------------------
    PAGE NAVIGATION
 -------------------------------------------------- */
-// 1) CTA -> Start page
-callForActionBg.addEventListener('click', () => {
-  callForActionPage.classList.remove('active');
-  startPage.classList.add('active');
-});
-
-// 2) Start page -> 3s countdown -> Game page
+// 1) Start page -> 3s countdown -> Game page
 startBg.addEventListener('click', () => {
   startBg.style.pointerEvents = 'none'; // block repeated clicks
   let count = 3;
@@ -451,7 +429,7 @@ startBg.addEventListener('click', () => {
 // 3) RECORD PAGE -> back to main menu
 backMainMenuBtn.addEventListener('click', () => {
   recordPage.classList.remove('active');
-  callForActionPage.classList.add('active');
+  startPage.classList.add('active');
   resetGameData();
 });
 
