@@ -293,13 +293,13 @@
     <img id="holes" src="./images/holes.png" alt="Holes">
     
     <!-- Moles -->
-    <img id="mole1" src="./images/mole/ball_01.gif" alt="Mole 1" class="mole" data-index="1">
-    <img id="mole2" src="./images/mole/ball_02.gif" alt="Mole 2" class="mole" data-index="2">
-    <img id="mole3" src="./images/mole/ball_03.gif" alt="Mole 3" class="mole" data-index="3">
-    <img id="mole4" src="./images/mole/ball_04.gif" alt="Mole 4" class="mole" data-index="4">
-    <img id="mole5" src="./images/mole/ball_05.gif" alt="Mole 5" class="mole" data-index="5">
-    <img id="mole6" src="./images/mole/ball_06.gif" alt="Mole 6" class="mole" data-index="6">
-    <img id="mole7" src="./images/mole/ball_b07.gif" alt="Mole 7" class="mole" data-index="7">
+    <img id="mole1" src="./images/mole/ball_01.gif" alt="Mole 1" class="mole" data-index="1" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole2" src="./images/mole/ball_02.gif" alt="Mole 2" class="mole" data-index="2" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole3" src="./images/mole/ball_03.gif" alt="Mole 3" class="mole" data-index="3" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole4" src="./images/mole/ball_04.gif" alt="Mole 4" class="mole" data-index="4" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole5" src="./images/mole/ball_05.gif" alt="Mole 5" class="mole" data-index="5" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole6" src="./images/mole/ball_06.gif" alt="Mole 6" class="mole" data-index="6" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole7" src="./images/mole/ball_b07.gif" alt="Mole 7" class="mole" data-index="7" data-hits="0" data-required-hits="3" data-score="300">
 
   <!-- Countdown at bottom -->
   <div id="countdown-container">
@@ -508,13 +508,21 @@ function startMoleSpawning() {
 function showMole(mole) {
   if(activeMoles.has(mole)) return;
   
-  // Show the mole
+  // Randomly decide if this should be a special mole (c08)
+  if (Math.random() < 0.1 && mole.id !== 'mole7') { // 10% chance for special mole, but not on mole7
+    mole.src = './images/mole/ball_c08.gif';
+    mole.dataset.requiredHits = '5';
+    mole.dataset.score = '500';
+  } else {
+    // Reset to original image if it was changed
+    const originalImage = mole.id === 'mole7' ? 'ball_b07.gif' : `ball_0${mole.dataset.index}.gif`;
+    mole.src = `./images/mole/${originalImage}`;
+    mole.dataset.requiredHits = mole.id === 'mole7' ? '3' : '1';
+    mole.dataset.score = mole.id === 'mole7' ? '300' : '100';
+  }
+  
+  mole.dataset.hits = '0';
   mole.style.display = 'block';
-  
-  // Force reflow
-  mole.offsetHeight;
-  
-  // Pop up animation
   mole.classList.add('active');
   activeMoles.add(mole);
   
@@ -522,7 +530,7 @@ function showMole(mole) {
   molePopSound.currentTime = 0;
   molePopSound.play();
   
-  // Auto-hide after 1-2s
+  // Auto-hide after random time
   const hideDelay = 1000 + Math.random() * 1000;
   setTimeout(() => hideMole(mole), hideDelay);
 }
@@ -530,8 +538,8 @@ function showMole(mole) {
 function hideMole(mole) {
   mole.classList.remove('active');
   activeMoles.delete(mole);
+  mole.dataset.hits = '0';
   
-  // Hide after animation completes
   setTimeout(() => {
     mole.style.display = 'none';
   }, 300);
@@ -539,7 +547,6 @@ function hideMole(mole) {
 
 /* --------------------------------------------------
    "Whack" logic via keyboard 1..7
-   (Could also do onClick, or separate events.)
 -------------------------------------------------- */
 document.addEventListener('keydown', (evt) => {
   // Only if game is active
@@ -552,22 +559,58 @@ document.addEventListener('keydown', (evt) => {
     '4': moles[3],  '52': moles[3],
     '5': moles[4],  '53': moles[4],
     '6': moles[5],  '54': moles[5],
-    '7': moles[6],  '55': moles[6],
-    '8': moles[7],  '56': moles[7],
-    '9': moles[8],  '57': moles[8],
-    '0': moles[9],  '48': moles[9],
-    'q': moles[10], '81': moles[10],
-    'w': moles[11], '87': moles[11],
-    'e': moles[12], '69': moles[12],
-    'r': moles[13], '82': moles[13],
-    't': moles[14], '84': moles[14]
+    '7': moles[6],  '55': moles[6]
   };
+  
   const mole = keyMap[evt.key] || keyMap[evt.keyCode];
   if(mole && activeMoles.has(mole)) {
-    showExplosion(mole);
-    hideMole(mole);
+    whackMole(mole);
   }
 });
+
+function whackMole(mole) {
+  if (!activeMoles.has(mole)) return;
+  
+  // Increment hit counter
+  let hits = parseInt(mole.dataset.hits) + 1;
+  let requiredHits = parseInt(mole.dataset.requiredHits);
+  mole.dataset.hits = hits;
+
+  // Create hit counter display if it doesn't exist
+  let hitDisplay = mole.querySelector('.hit-counter');
+  if (!hitDisplay && requiredHits > 1) {
+    hitDisplay = document.createElement('div');
+    hitDisplay.className = 'hit-counter';
+    hitDisplay.style.position = 'absolute';
+    hitDisplay.style.top = '-20px';
+    hitDisplay.style.left = '50%';
+    hitDisplay.style.transform = 'translateX(-50%)';
+    hitDisplay.style.color = '#fff';
+    hitDisplay.style.fontSize = '24px';
+    hitDisplay.style.textShadow = '2px 2px 2px #000';
+    hitDisplay.style.zIndex = '10';
+    mole.parentNode.appendChild(hitDisplay);
+    mole.hitDisplay = hitDisplay;
+  }
+
+  // Update hit counter display
+  if (hitDisplay && requiredHits > 1) {
+    hitDisplay.textContent = `${hits}/${requiredHits}`;
+  }
+
+  // Play hit sound
+  explosionSound.currentTime = 0;
+  explosionSound.play();
+
+  // If enough hits, trigger explosion and hide
+  if (hits >= requiredHits) {
+    showExplosion(mole);
+    hideMole(mole);
+    if (hitDisplay) {
+      hitDisplay.remove();
+    }
+  }
+}
 
 /* --------------------------------------------------
    EXPLOSION EFFECT
@@ -597,7 +640,7 @@ function showExplosion(mole) {
   explosionSound.play();
 
   // Update score
-  score += 100;
+  score += parseInt(mole.dataset.score);
   scoreText.textContent = score;
 
   // Hide explosions after 0.5s
