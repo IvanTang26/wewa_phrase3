@@ -150,12 +150,12 @@
       display: none; /* Hidden by default */
       transform: translateY(100%); /* Start position is below the hole */
       will-change: transform; /* Optimize for animations */
-      transition: transform 0.1s ease-out;
+      transition: transform 0.5s ease-out !important;
       cursor: pointer;
     }
 
     .mole.active {
-      transform: translateY(0); /* Pop up to hole level */
+      transform: translateY(0) !important;
     }
 
     /* Mole positions for left group */
@@ -492,7 +492,7 @@ function startMoleSpawning() {
     mole.style.bottom = '-100%';
   });
 
-  // Spawn attempt every 800ms (max 3 on screen)
+  // Spawn attempt every 1500ms (increased from 800ms) (max 3 on screen)
   moleInterval = setInterval(() => {
     if(activeMoles.size < 3) {
       // get random mole that isn't active
@@ -502,7 +502,7 @@ function startMoleSpawning() {
         showMole(chosen);
       }
     }
-  }, 800);
+  }, 1500);
 }
 
 function showMole(mole) {
@@ -530,8 +530,8 @@ function showMole(mole) {
   molePopSound.currentTime = 0;
   molePopSound.play();
   
-  // Auto-hide after random time
-  const hideDelay = 1000 + Math.random() * 1000;
+  // Auto-hide after random time (increased duration)
+  const hideDelay = 2000 + Math.random() * 1500; // Between 2 to 3.5 seconds
   setTimeout(() => hideMole(mole), hideDelay);
 }
 
@@ -598,13 +598,13 @@ function whackMole(mole) {
     hitDisplay.textContent = `${hits}/${requiredHits}`;
   }
 
-  // Play hit sound
-  explosionSound.currentTime = 0;
-  explosionSound.play();
+  // Show explosion effect and play sound for every hit
+  showHitExplosion(mole);
 
-  // If enough hits, trigger explosion and hide
+  // If enough hits, hide mole and add score
   if (hits >= requiredHits) {
-    showExplosion(mole);
+    score += parseInt(mole.dataset.score);
+    scoreText.textContent = score;
     hideMole(mole);
     if (hitDisplay) {
       hitDisplay.remove();
@@ -613,9 +613,10 @@ function whackMole(mole) {
 }
 
 /* --------------------------------------------------
-   EXPLOSION EFFECT
+   EXPLOSION EFFECTS
 -------------------------------------------------- */
-function showExplosion(mole) {
+// New function for hit explosions
+function showHitExplosion(mole) {
   const moleRect      = mole.getBoundingClientRect();
   const gamePageRect  = gamePage.getBoundingClientRect();
   const offsetLeft    = moleRect.left - gamePageRect.left;
@@ -635,20 +636,28 @@ function showExplosion(mole) {
   explosionGif.style.top     = offsetTop + 'px';
   explosionGif.style.display = 'block';
 
-  // Sound
+  // Play explosion sound
   explosionSound.currentTime = 0;
   explosionSound.play();
 
-  // Update score
-  score += parseInt(mole.dataset.score);
-  scoreText.textContent = score;
-
-  // Hide explosions after 0.5s
+  // Hide explosions after 0.3s (shorter for repeated hits)
   setTimeout(() => {
     explosion.style.display = 'none';
     explosionGif.style.display = 'none';
-  }, 500);
+  }, 300);
 }
+
+// Add CSS transition for smoother movement
+const styleSheet = document.createElement('style');
+styleSheet.textContent = `
+  .mole {
+    transition: transform 0.5s ease-out !important;
+  }
+  .mole.active {
+    transform: translateY(0) !important;
+  }
+`;
+document.head.appendChild(styleSheet);
 </script>
 </body>
 </html>
