@@ -1,0 +1,8 @@
+body {
+    font-family: Arial, sans-serif;
+    background: url('./bg/bg.gif') center center/cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+} 
