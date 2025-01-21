@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Whack-a-Mole Game</title>
+  <style>
+    /* ----------------------------------
+       1) FONT FACE
+    ---------------------------------- */
+    @font-face {
+      font-family: 'KemcoPixelBold';
+      src: url('fonts/KemcoPixelBold.ttf') format('truetype');
+      font-weight: normal;
+      font-style: normal;
+    }
+
+    /* ----------------------------------
+       2) BASIC RESET
+    ---------------------------------- */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'KemcoPixelBold', sans-serif;
+    }
+    body {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #000;
+    }
+
+    /* ----------------------------------
+       3) PAGE CONTAINERS
+    ---------------------------------- */
+    .page {
+      position: relative;
+      width: 768px;
+      height: 1365px;
+      margin: 0 auto;
+      overflow: hidden;
+      display: none;  /* hidden by default */
+      border: 2px solid #333; /* for debugging */
+    }
+    .page.active {
+      display: block; /* show only the active page */
+    }
+    .bg-image {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      cursor: pointer;
+    }
+
+    /* ----------------------------------
+       4) CALL FOR ACTION (Page 1)
+    ---------------------------------- */
+    #call-for-action-page {
+      background-color: #a0a; /* fallback */
+    }
+
+    /* ----------------------------------
+       5) START PAGE (Page 2)
+    ---------------------------------- */
+    #start-page {
+      background-color: #08f; /* fallback */
+    }
+    #countdown-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 200px;
+      color: #fff;
+      text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.5);
+      z-index: 10;
+      opacity: 0;           /* hidden by default */
+      transition: opacity 0.3s ease;
+    }
+
+    /* ----------------------------------
+       6) GAME PAGE (Page 3)
+    ---------------------------------- */
+    #game-page {
+      background-color: #222;
+    }
+    #game-bg {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+    #title {
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60%;
+      z-index: 2;
+    }
+    /* Score container */
+    #score-container {
+      position: absolute;
+      top: 400px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      text-align: center;
+    }
+    #score-image {
+      width: 200px;
+    }
+    #score-text {
+      position: absolute;
+      top: 72%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2.5em;
+      color: #000;
+    }
+
+    /* 
+       7) THE HOLES AND MOLES
+       -------------------------------- */
+    #holes {
+      position: absolute;
+      bottom: 120px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 750px;
+      height: auto;
+      z-index: 3;
+    }
+
+    .mole {
+      position: absolute;
+      width: 250px;
+      height: auto;
+      z-index: 4;
+      display: none; /* Hidden by default */
+      transform: translateY(100%); /* Start position is below the hole */
+      will-change: transform; /* Optimize for animations */
+      transition: transform 0.1s ease-out;
+      cursor: pointer;
+    }
+
+    .mole.active {
+      transform: translateY(0); /* Pop up to hole level */
+    }
+
+    /* Mole positions for left group */
+    #mole1 { left: 15.5%; top: 20.3%; }
+    #mole2 { left: 46.7%; top: 20.3%; }
+    #mole3 { left: 1.5%; top: 35%; }
+    #mole4 { left: 32.4%; top: 35%; }
+    #mole5 { left: 65.6%; top: 35%; }
+    #mole6 { left: 15.4%; top: 40.7%; }
+    #mole7 { left: 46.7%; top: 40.7%; }
+
+   
+
+    /* Timer container */
+    #countdown-container {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      text-align: center;
+    }
+    #countdown-image {
+      width: 150px;
+    }
+    #timer-text {
+      position: absolute;
+      top: 70%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 2.5em;
+      color: #000;
+    }
+
+    /* Explosion images (hidden by default) */
+    #explosion, #explosion-gif {
+      display: none;
+      position: absolute;
+      z-index: 5;
+      pointer-events: none;
+    }
+    /* --- WeWa Logo (optional) --- */
+    #wewa-logo {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 6;
+      width: 90px;
+      height: auto;
+    }
+    /* ----------------------------------
+       8) RECORD PAGE (Page 4)
+    ---------------------------------- */
+    #record-page {
+      background-color: #ccf;
+    }
+    #record-bg {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      top: 0;
+      left: 0;
+      z-index: 1;
+    }
+    #scroll-record {
+      position: absolute;
+      top: 200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 600px;
+      z-index: 2;
+    }
+    #record-list {
+      position: absolute;
+      top: 600px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      color: #000;
+      font-size: 30px;
+      text-align: left;
+      z-index: 3;
+    }
+    #back-mainmenu {
+      position: absolute;
+      bottom: 100px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 350px;
+      cursor: pointer;
+      z-index: 4;
+    }
+
+  </style>
+</head>
+<body>
+
+<!-- 
+  =======================================
+       1) CALL FOR ACTION PAGE
+  =======================================
+-->
+<div id="call-for-action-page" class="page active">
+  <img
+    id="call-for-action-bg"
+    class="bg-image"
+    src="images/callToActionPage.png"
+    alt="Call-to-action Background"
+  />
+</div>
+
+<!-- 
+  =======================================
+       2) START PAGE
+  =======================================
+-->
+<div id="start-page" class="page">
+  <img
+    id="start-bg"
+    class="bg-image"
+    src="images/startPage.png"
+    alt="Start Page Background"
+  />
+  <div id="countdown-overlay">3</div>
+  <audio id="countdown-sound" src="sounds/countdown.wav"></audio>
+  <audio id="game-start-sound" src="sounds/game-start.wav"></audio>
+</div>
+
+<!-- 
+  =======================================
+       3) GAME PAGE
+  =======================================
+-->
+<div id="game-page" class="page">
+  <img id="game-bg" src="bg/bg.gif" alt="Gameplay Background" />
+
+  <img id="title" src="images/title.png" alt="Game Title" />
+  <img id="wewa-logo" src="images/wewa-logo.png" alt="WeWa Logo" />
+  <!-- Score container -->
+  <div id="score-container">
+    <img id="score-image" src="images/totalscore.png" alt="Score BG" />
+    <div id="score-text">0</div>
+  </div>
+
+  <!-- Game grid with updated structure -->
+  <div id="game-container">
+    <!-- Holes background image -->
+    <img id="holes" src="images/holes.png" alt="Holes">
+    
+    <!-- Moles -->
+    <img id="mole1" src="images/mole/ball_01.gif" alt="Mole 1" class="mole" data-index="1">
+    <img id="mole2" src="images/mole/ball_02.gif" alt="Mole 2" class="mole" data-index="2">
+    <img id="mole3" src="images/mole/ball_03.gif" alt="Mole 3" class="mole" data-index="3">
+    <img id="mole4" src="images/mole/ball_04.gif" alt="Mole 4" class="mole" data-index="4">
+    <img id="mole5" src="images/mole/ball_05.gif" alt="Mole 5" class="mole" data-index="5">
+    <img id="mole6" src="images/mole/ball_06.gif" alt="Mole 6" class="mole" data-index="6">
+    <img id="mole7" src="images/mole/ball_b07.gif" alt="Mole 7" class="mole" data-index="7">
+
+  <!-- Countdown at bottom -->
+  <div id="countdown-container">
+    <img id="countdown-image" src="images/countdown.png" alt="Countdown BG" />
+    <div id="timer-text">60</div>
+  </div>
+
+  <!-- Explosions (hidden initially) -->
+  <img id="explosion" src="images/explosion.png" alt="Explosion" />
+  <img id="explosion-gif" src="images/explosion01.gif" alt="Explosion Animation" />
+
+  <!-- AUDIO -->
+  <audio id="explosion-sound" src="sounds/explosion.wav"></audio>
+  <audio id="background-music" loop>
+    <source src="sounds/background-music.mp3" type="audio/mp3">
+  </audio>
+  <audio id="game-over-sound" src="sounds/game-over.wav"></audio>
+</div>
+
+<!-- 
+  =======================================
+       4) RECORD PAGE
+  =======================================
+-->
+<div id="record-page" class="page">
+  <img
+    id="record-bg"
+    class="bg-image"
+    src="images/endingpage.png"
+    alt="Record Page Background"
+  />
+  <img
+    id="scroll-record"
+    src="images/recordScroll.png"
+    alt="Scroll Record"
+  />
+  <div id="record-list">
+    <p id="finalScoreDisplay" style="font-size:36px;">最終分數: 0</p>
+    <p>ABC — 820</p>
+    <p>CHAN — 700</p>
+    <p>LEE — 650</p>
+    <p>WONG — 500</p>
+  </div>
+  <img
+    id="back-mainmenu"
+    src="images/backToMainMenu.png"
+    alt="Back to Main Menu"
+  />
+</div>
+
+<script>
+/* --------------------------------------------------
+   PAGE DOM REFERENCES
+-------------------------------------------------- */
+const callForActionPage = document.getElementById('call-for-action-page');
+const startPage         = document.getElementById('start-page');
+const gamePage          = document.getElementById('game-page');
+const recordPage        = document.getElementById('record-page');
+
+const callForActionBg   = document.getElementById('call-for-action-bg');
+const startBg           = document.getElementById('start-bg');
+
+const scoreText         = document.getElementById('score-text');
+const timerText         = document.getElementById('timer-text');
+const finalScoreDisplay = document.getElementById('finalScoreDisplay');
+const backMainMenuBtn   = document.getElementById('back-mainmenu');
+
+const countdownOverlay  = document.getElementById('countdown-overlay');
+const countdownSound    = document.getElementById('countdown-sound');
+const gameStartSound    = document.getElementById('game-start-sound');
+
+const explosion         = document.getElementById('explosion');
+const explosionGif      = document.getElementById('explosion-gif');
+const explosionSound    = document.getElementById('explosion-sound');
+
+const backgroundMusic   = document.getElementById('background-music');
+backgroundMusic.volume  = 0.2; // 20% volume
+const gameOverSound     = document.getElementById('game-over-sound');
+
+/* Moles */
+const moles = document.querySelectorAll('.mole');
+let activeMoles = new Set();
+
+/* Score/Time Tracking */
+let score         = 0;
+let timeLeft      = 60;
+let timerInterval = null;
+let moleInterval  = null;
+
+/* Simple pop sound for when mole appears (optional) */
+const molePopSound = new Audio('sounds/pop.wav');
+
+/* --------------------------------------------------
+   PAGE NAVIGATION
+-------------------------------------------------- */
+// 1) CTA -> Start page
+callForActionBg.addEventListener('click', () => {
+  callForActionPage.classList.remove('active');
+  startPage.classList.add('active');
+});
+
+// 2) Start page -> 3s countdown -> Game page
+startBg.addEventListener('click', () => {
+  startBg.style.pointerEvents = 'none'; // block repeated clicks
+  let count = 3;
+  countdownOverlay.textContent = count;
+  countdownOverlay.style.opacity = '1';
+
+  // Countdown each second
+  const countdownInterval = setInterval(() => {
+    count--;
+    if(count > 0) {
+      // Play beep
+      countdownSound.currentTime = 0;
+      countdownSound.play();
+      // Update overlay
+      countdownOverlay.textContent = count;
+    } else {
+      // Stop countdown
+      clearInterval(countdownInterval);
+      countdownOverlay.style.opacity = '0';
+      // Game start sound
+      gameStartSound.currentTime = 0;
+      gameStartSound.play();
+      // Switch to game page
+      setTimeout(() => {
+        startPage.classList.remove('active');
+        gamePage.classList.add('active');
+        startTimer();
+      }, 300);
+    }
+  }, 1000);
+});
+
+// 3) RECORD PAGE -> back to main menu
+backMainMenuBtn.addEventListener('click', () => {
+  recordPage.classList.remove('active');
+  callForActionPage.classList.add('active');
+  resetGameData();
+});
+
+/* --------------------------------------------------
+   TIMER + GAME LOGIC
+-------------------------------------------------- */
+function startTimer() {
+  backgroundMusic.currentTime = 0;
+  backgroundMusic.play();
+
+  // Start spawning and a 60s countdown
+  startMoleSpawning();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    timerText.textContent = timeLeft;
+    if(timeLeft <= 0) {
+      endGame();
+    }
+  }, 1000);
+}
+
+function endGame() {
+  clearInterval(timerInterval);
+  clearInterval(moleInterval);
+  backgroundMusic.pause();
+
+  // Show record page after short delay
+  gameOverSound.currentTime = 0;
+  gameOverSound.play();
+
+  // Hide all moles
+  moles.forEach(hideMole);
+  activeMoles.clear();
+
+  setTimeout(() => {
+    gamePage.classList.remove('active');
+    recordPage.classList.add('active');
+    finalScoreDisplay.textContent = "最終分數: " + score;
+  }, 500);
+}
+
+function resetGameData() {
+  score = 0;
+  timeLeft = 60;
+  scoreText.textContent = score;
+  timerText.textContent = timeLeft;
+
+  backgroundMusic.pause();
+  backgroundMusic.currentTime = 0;
+  startBg.style.pointerEvents = 'auto';
+}
+
+/* --------------------------------------------------
+   MOLE SPAWNING + CLICK (KEY) LOGIC
+-------------------------------------------------- */
+function startMoleSpawning() {
+  // Make sure everything is hidden initially
+  moles.forEach(mole => {
+    mole.style.display = 'none';
+    mole.style.bottom = '-100%';
+  });
+
+  // Spawn attempt every 800ms (max 3 on screen)
+  moleInterval = setInterval(() => {
+    if(activeMoles.size < 3) {
+      // get random mole that isn't active
+      const inactiveMoles = Array.from(moles).filter(m => !activeMoles.has(m));
+      if(inactiveMoles.length > 0) {
+        const chosen = inactiveMoles[Math.floor(Math.random() * inactiveMoles.length)];
+        showMole(chosen);
+      }
+    }
+  }, 800);
+}
+
+function showMole(mole) {
+  if(activeMoles.has(mole)) return;
+  
+  // Show the mole
+  mole.style.display = 'block';
+  
+  // Force reflow
+  mole.offsetHeight;
+  
+  // Pop up animation
+  mole.classList.add('active');
+  activeMoles.add(mole);
+  
+  // Play pop sound
+  molePopSound.currentTime = 0;
+  molePopSound.play();
+  
+  // Auto-hide after 1-2s
+  const hideDelay = 1000 + Math.random() * 1000;
+  setTimeout(() => hideMole(mole), hideDelay);
+}
+
+function hideMole(mole) {
+  mole.classList.remove('active');
+  activeMoles.delete(mole);
+  
+  // Hide after animation completes
+  setTimeout(() => {
+    mole.style.display = 'none';
+  }, 300);
+}
+
+/* --------------------------------------------------
+   "Whack" logic via keyboard 1..7
+   (Could also do onClick, or separate events.)
+-------------------------------------------------- */
+document.addEventListener('keydown', (evt) => {
+  // Only if game is active
+  if(!gamePage.classList.contains('active')) return;
+
+  const keyMap = {
+    '1': moles[0],  '49': moles[0],
+    '2': moles[1],  '50': moles[1],
+    '3': moles[2],  '51': moles[2],
+    '4': moles[3],  '52': moles[3],
+    '5': moles[4],  '53': moles[4],
+    '6': moles[5],  '54': moles[5],
+    '7': moles[6],  '55': moles[6],
+    '8': moles[7],  '56': moles[7],
+    '9': moles[8],  '57': moles[8],
+    '0': moles[9],  '48': moles[9],
+    'q': moles[10], '81': moles[10],
+    'w': moles[11], '87': moles[11],
+    'e': moles[12], '69': moles[12],
+    'r': moles[13], '82': moles[13],
+    't': moles[14], '84': moles[14]
+  };
+  const mole = keyMap[evt.key] || keyMap[evt.keyCode];
+  if(mole && activeMoles.has(mole)) {
+    showExplosion(mole);
+    hideMole(mole);
+  }
+});
+
+/* --------------------------------------------------
+   EXPLOSION EFFECT
+-------------------------------------------------- */
+function showExplosion(mole) {
+  const moleRect      = mole.getBoundingClientRect();
+  const gamePageRect  = gamePage.getBoundingClientRect();
+  const offsetLeft    = moleRect.left - gamePageRect.left;
+  const offsetTop     = moleRect.top  - gamePageRect.top;
+
+  // Position static explosion sprite
+  explosion.style.width   = moleRect.width + 'px';
+  explosion.style.height  = moleRect.height + 'px';
+  explosion.style.left    = offsetLeft + 'px';
+  explosion.style.top     = offsetTop + 'px';
+  explosion.style.display = 'block';
+
+  // Position animated GIF
+  explosionGif.style.width   = moleRect.width + 'px';
+  explosionGif.style.height  = moleRect.height + 'px';
+  explosionGif.style.left    = offsetLeft + 'px';
+  explosionGif.style.top     = offsetTop + 'px';
+  explosionGif.style.display = 'block';
+
+  // Sound
+  explosionSound.currentTime = 0;
+  explosionSound.play();
+
+  // Update score
+  score += 100;
+  scoreText.textContent = score;
+
+  // Hide explosions after 0.5s
+  setTimeout(() => {
+    explosion.style.display = 'none';
+    explosionGif.style.display = 'none';
+  }, 500);
+}
+</script>
+</body>
+</html>
