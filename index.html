@@ -382,10 +382,11 @@ const moles = document.querySelectorAll('.mole');
 let activeMoles = new Set();
 
 /* Score/Time Tracking */
-let score         = 0;
-let timeLeft      = 60;
+let score = 0;
+let timeLeft = 60;
 let timerInterval = null;
-let moleInterval  = null;
+let moleInterval = null;
+let pillInterval = null;
 
 /* Simple pop sound for when mole appears (optional) */
 const molePopSound = new Audio('sounds/pop.wav');
@@ -454,7 +455,11 @@ function startTimer() {
 function endGame() {
   clearInterval(timerInterval);
   clearInterval(moleInterval);
+  clearInterval(pillInterval);
   backgroundMusic.pause();
+
+  // Remove all pills
+  document.querySelectorAll('.pill').forEach(pill => pill.remove());
 
   // Show record page after short delay
   gameOverSound.currentTime = 0;
@@ -485,42 +490,94 @@ function resetGameData() {
 /* --------------------------------------------------
    MOLE SPAWNING + CLICK (KEY) LOGIC
 -------------------------------------------------- */
+function updateMoleColors() {
+  // This function is no longer needed as we're controlling mole types directly
+}
+
 function startMoleSpawning() {
   // Make sure everything is hidden initially
   moles.forEach(mole => {
     mole.style.display = 'none';
-    mole.style.bottom = '-100%';
+    mole.classList.remove('active');
   });
 
-  // Spawn attempt every 1500ms (increased from 800ms) (max 3 on screen)
+  // Spawn moles every 0.2 seconds based on time-based maximum
   moleInterval = setInterval(() => {
-    if(activeMoles.size < 3) {
-      // get random mole that isn't active
+    const maxMoles = Math.min(6, Math.ceil((60 - timeLeft) / 10));
+    
+    // If we haven't reached the maximum allowed moles
+    if (activeMoles.size < maxMoles) {
       const inactiveMoles = Array.from(moles).filter(m => !activeMoles.has(m));
-      if(inactiveMoles.length > 0) {
+      if (inactiveMoles.length > 0) {
         const chosen = inactiveMoles[Math.floor(Math.random() * inactiveMoles.length)];
         showMole(chosen);
       }
     }
-  }, 1500);
+  }, 200); // Spawn check every 0.2 seconds
 }
 
 function showMole(mole) {
-  if(activeMoles.has(mole)) return;
+  if (activeMoles.has(mole)) return;
   
-  // Randomly decide if this should be a special mole (c08)
-  if (Math.random() < 0.1 && mole.id !== 'mole7') { // 10% chance for special mole, but not on mole7
-    mole.src = './images/mole/ball_c08.gif';
-    mole.dataset.requiredHits = '5';
-    mole.dataset.score = '500';
+  // Determine which type of mole to show based on time
+  let moleType;
+  if (timeLeft > 45) {
+    // 0-30 seconds: Only yellow moles (ball_01 to ball_06)
+    const yellowIndex = Math.floor(Math.random() * 6) + 1;
+    moleType = `ball_0${yellowIndex}.gif`;
+    mole.dataset.requiredHits = '1';
+    mole.dataset.score = '100';
+  } else if (timeLeft > 30) {
+    // 30-45 seconds: Yellow and orange moles
+    if (mole.id === 'mole7' || Math.random() < 0.3) { // 30% chance for orange mole
+      moleType = 'ball_b07.gif';
+      mole.dataset.requiredHits = '3';
+      mole.dataset.score = '300';
+    } else {
+      const yellowIndex = Math.floor(Math.random() * 6) + 1;
+      moleType = `ball_0${yellowIndex}.gif`;
+      mole.dataset.requiredHits = '1';
+      mole.dataset.score = '100';
+    }
+  } else if (timeLeft > 0) {
+    // 45-60 seconds: Yellow, orange, and red moles
+    const rand = Math.random();
+    if (rand < 0.2) { // 20% chance for red mole
+      moleType = 'ball_c08.gif';
+      mole.dataset.requiredHits = '5';
+      mole.dataset.score = '500';
+    } else if (rand < 0.5) { // 30% chance for orange mole
+      moleType = 'ball_b07.gif';
+      mole.dataset.requiredHits = '3';
+      mole.dataset.score = '300';
+    } else { // 50% chance for yellow mole
+      const yellowIndex = Math.floor(Math.random() * 6) + 1;
+      moleType = `ball_0${yellowIndex}.gif`;
+      mole.dataset.requiredHits = '1';
+      mole.dataset.score = '100';
+    }
   } else {
-    // Reset to original image if it was changed
-    const originalImage = mole.id === 'mole7' ? 'ball_b07.gif' : `ball_0${mole.dataset.index}.gif`;
-    mole.src = `./images/mole/${originalImage}`;
-    mole.dataset.requiredHits = mole.id === 'mole7' ? '3' : '1';
-    mole.dataset.score = mole.id === 'mole7' ? '300' : '100';
+    // After 60 seconds: Random moles
+    const allTypes = [
+      'ball_01.gif', 'ball_02.gif', 'ball_03.gif', 
+      'ball_04.gif', 'ball_05.gif', 'ball_06.gif',
+      'ball_b07.gif', 'ball_c08.gif'
+    ];
+    moleType = allTypes[Math.floor(Math.random() * allTypes.length)];
+    
+    if (moleType === 'ball_c08.gif') {
+      mole.dataset.requiredHits = '5';
+      mole.dataset.score = '500';
+    } else if (moleType === 'ball_b07.gif') {
+      mole.dataset.requiredHits = '3';
+      mole.dataset.score = '300';
+    } else {
+      mole.dataset.requiredHits = '1';
+      mole.dataset.score = '100';
+    }
   }
   
+  mole.src = `./images/mole/${moleType}`;
   mole.dataset.hits = '0';
   mole.style.display = 'block';
   mole.classList.add('active');
@@ -530,9 +587,23 @@ function showMole(mole) {
   molePopSound.currentTime = 0;
   molePopSound.play();
   
-  // Auto-hide after random time (increased duration)
-  const hideDelay = 2000 + Math.random() * 1500; // Between 2 to 3.5 seconds
-  setTimeout(() => hideMole(mole), hideDelay);
+  // Auto-hide after 10 seconds
+  setTimeout(() => {
+    if (activeMoles.has(mole)) {
+      hideMole(mole);
+      // Wait 0.2 seconds before potentially spawning a new mole
+      setTimeout(() => {
+        const maxMoles = Math.min(6, Math.ceil((60 - timeLeft) / 10));
+        if (activeMoles.size < maxMoles) {
+          const inactiveMoles = Array.from(moles).filter(m => !activeMoles.has(m));
+          if (inactiveMoles.length > 0) {
+            const chosen = inactiveMoles[Math.floor(Math.random() * inactiveMoles.length)];
+            showMole(chosen);
+          }
+        }
+      }, 200);
+    }
+  }, 10000);
 }
 
 function hideMole(mole) {
@@ -540,10 +611,65 @@ function hideMole(mole) {
   activeMoles.delete(mole);
   mole.dataset.hits = '0';
   
+  // Remove hit counter if it exists
+  if (mole.hitDisplay) {
+    mole.hitDisplay.remove();
+    mole.hitDisplay = null;
+  }
+  
   setTimeout(() => {
     mole.style.display = 'none';
-  }, 300);
+  }, 200); // Changed to match the 0.2s pause requirement
 }
+
+function startPillSpawning() {
+  pillInterval = setInterval(() => {
+    const pillCount = Math.min(6, Math.ceil((60 - timeLeft) / 10));
+    spawnPills(pillCount);
+  }, 10000);
+}
+
+function spawnPills(count) {
+  // Create and show pills
+  for (let i = 0; i < count; i++) {
+    const pill = document.createElement('div');
+    pill.className = 'pill';
+    pill.style.position = 'absolute';
+    pill.style.width = '30px';
+    pill.style.height = '30px';
+    pill.style.backgroundColor = 'blue';
+    pill.style.borderRadius = '50%';
+    pill.style.zIndex = '5';
+    
+    // Random position within the game area
+    const gameArea = document.getElementById('game-container');
+    const left = Math.random() * (gameArea.offsetWidth - 30);
+    const top = Math.random() * (gameArea.offsetHeight - 30);
+    
+    pill.style.left = `${left}px`;
+    pill.style.top = `${top}px`;
+    
+    gameArea.appendChild(pill);
+    
+    // Remove pill after 3 seconds
+    setTimeout(() => {
+      pill.remove();
+    }, 3000);
+  }
+}
+
+// Add CSS for pills
+const pillStyle = document.createElement('style');
+pillStyle.textContent = `
+  .pill {
+    transition: all 0.3s ease;
+  }
+  .pill:hover {
+    transform: scale(1.2);
+    cursor: pointer;
+  }
+`;
+document.head.appendChild(pillStyle);
 
 /* --------------------------------------------------
    "Whack" logic via keyboard 1..7
