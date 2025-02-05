@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Whack-a-Mole Game</title>
   <style>
     /* ----------------------------------
@@ -132,6 +133,13 @@
     /* 
        7) THE HOLES AND MOLES
        -------------------------------- */
+    #game-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
     #holes {
       position: absolute;
       bottom: 120px;
@@ -142,32 +150,53 @@
       z-index: 3;
     }
 
+    /* Mole styles */
     .mole {
       position: absolute;
-      width: 250px;
+      width: 200px;
       height: auto;
       z-index: 4;
-      display: none; /* Hidden by default */
-      transform: translateY(100%); /* Start position is below the hole */
-      will-change: transform; /* Optimize for animations */
-      transition: transform 0.5s ease-out !important;
+      display: none;
+      transform: translateY(100%);
+      transition: transform 5s linear;
       cursor: pointer;
+      pointer-events: auto;
     }
 
+    /* Smaller yellow moles with adjusted position offset */
+    [src*="mole_0"] {
+      width: 120px !important;
+      margin-left: 20px; /* Offset to center in hole */
+    }
+
+    /* Active state for rising animation */
     .mole.active {
-      transform: translateY(0) !important;
+      transform: translateY(-100%);
     }
 
-    /* Mole positions for left group */
-    #mole1 { left: 15.5%; top: 20.3%; }
-    #mole2 { left: 46.7%; top: 20.3%; }
-    #mole3 { left: 1.5%; top: 35%; }
-    #mole4 { left: 32.4%; top: 35%; }
-    #mole5 { left: 65.6%; top: 35%; }
-    #mole6 { left: 15.4%; top: 40.7%; }
-    #mole7 { left: 46.7%; top: 40.7%; }
+    /* Mole positions relative to holes */
+    #mole1 { left: 15%; bottom: 700px; }
+    #mole2 { left: 46%; bottom: 700px; }
+    #mole3 { left: 1.5%; bottom: 500px; }
+    #mole4 { left: 32.4%; bottom: 500px; }
+    #mole5 { left: 65.6%; bottom: 500px; }
+    #mole6 { left: 15.4%; bottom: 120px; }
+    #mole7 { left: 46.7%; bottom: 120px; }
 
-   
+    /* Hit counter */
+    .hit-counter {
+      position: absolute;
+      top: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-size: 24px;
+      text-shadow: 2px 2px 0 #000,
+                  -2px -2px 0 #000,
+                  2px -2px 0 #000,
+                  -2px 2px 0 #000;
+      z-index: 10;
+    }
 
     /* Timer container */
     #countdown-container {
@@ -293,13 +322,13 @@
     <img id="holes" src="./images/holes.png" alt="Holes">
     
     <!-- Moles -->
-    <img id="mole1" src="./images/mole/ball_01.gif" alt="Mole 1" class="mole" data-index="1" data-hits="0" data-required-hits="1" data-score="100">
-    <img id="mole2" src="./images/mole/ball_02.gif" alt="Mole 2" class="mole" data-index="2" data-hits="0" data-required-hits="1" data-score="100">
-    <img id="mole3" src="./images/mole/ball_03.gif" alt="Mole 3" class="mole" data-index="3" data-hits="0" data-required-hits="1" data-score="100">
-    <img id="mole4" src="./images/mole/ball_04.gif" alt="Mole 4" class="mole" data-index="4" data-hits="0" data-required-hits="1" data-score="100">
-    <img id="mole5" src="./images/mole/ball_05.gif" alt="Mole 5" class="mole" data-index="5" data-hits="0" data-required-hits="1" data-score="100">
-    <img id="mole6" src="./images/mole/ball_06.gif" alt="Mole 6" class="mole" data-index="6" data-hits="0" data-required-hits="1" data-score="100">
-    <img id="mole7" src="./images/mole/ball_b07.gif" alt="Mole 7" class="mole" data-index="7" data-hits="0" data-required-hits="3" data-score="300">
+    <img id="mole1" src="./images/mole/mole_01.png" alt="Mole 1" class="mole" data-index="1" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole2" src="./images/mole/mole_02.png" alt="Mole 2" class="mole" data-index="2" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole3" src="./images/mole/mole_03.png" alt="Mole 3" class="mole" data-index="3" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole4" src="./images/mole/mole_04.png" alt="Mole 4" class="mole" data-index="4" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole5" src="./images/mole/mole_05.png" alt="Mole 5" class="mole" data-index="5" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole6" src="./images/mole/mole_06.png" alt="Mole 6" class="mole" data-index="6" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole7" src="./images/mole/mole_07.png" alt="Mole 7" class="mole" data-index="7" data-hits="0" data-required-hits="1" data-score="100">
 
   <!-- Countdown at bottom -->
   <div id="countdown-container">
@@ -522,20 +551,20 @@ function showMole(mole) {
   // Determine which type of mole to show based on time
   let moleType;
   if (timeLeft > 45) {
-    // 0-30 seconds: Only yellow moles (ball_01 to ball_06)
-    const yellowIndex = Math.floor(Math.random() * 6) + 1;
-    moleType = `ball_0${yellowIndex}.gif`;
+    // 0-30 seconds: Only yellow moles
+    const yellowIndex = Math.floor(Math.random() * 7) + 1;
+    moleType = `mole_0${yellowIndex}.png`;
     mole.dataset.requiredHits = '1';
     mole.dataset.score = '100';
   } else if (timeLeft > 30) {
     // 30-45 seconds: Yellow and orange moles
-    if (mole.id === 'mole7' || Math.random() < 0.3) { // 30% chance for orange mole
-      moleType = 'ball_b07.gif';
+    if (Math.random() < 0.3) { // 30% chance for orange mole
+      moleType = 'orange_mole_01.png';
       mole.dataset.requiredHits = '3';
       mole.dataset.score = '300';
     } else {
-      const yellowIndex = Math.floor(Math.random() * 6) + 1;
-      moleType = `ball_0${yellowIndex}.gif`;
+      const yellowIndex = Math.floor(Math.random() * 7) + 1;
+      moleType = `mole_0${yellowIndex}.png`;
       mole.dataset.requiredHits = '1';
       mole.dataset.score = '100';
     }
@@ -543,35 +572,33 @@ function showMole(mole) {
     // 45-60 seconds: Yellow, orange, and red moles
     const rand = Math.random();
     if (rand < 0.2) { // 20% chance for red mole
-      moleType = 'ball_c08.gif';
+      moleType = 'red_mole_01.png';
       mole.dataset.requiredHits = '5';
       mole.dataset.score = '500';
     } else if (rand < 0.5) { // 30% chance for orange mole
-      moleType = 'ball_b07.gif';
+      moleType = 'orange_mole_01.png';
       mole.dataset.requiredHits = '3';
       mole.dataset.score = '300';
     } else { // 50% chance for yellow mole
-      const yellowIndex = Math.floor(Math.random() * 6) + 1;
-      moleType = `ball_0${yellowIndex}.gif`;
+      const yellowIndex = Math.floor(Math.random() * 7) + 1;
+      moleType = `mole_0${yellowIndex}.png`;
       mole.dataset.requiredHits = '1';
       mole.dataset.score = '100';
     }
   } else {
     // After 60 seconds: Random moles
-    const allTypes = [
-      'ball_01.gif', 'ball_02.gif', 'ball_03.gif', 
-      'ball_04.gif', 'ball_05.gif', 'ball_06.gif',
-      'ball_b07.gif', 'ball_c08.gif'
-    ];
-    moleType = allTypes[Math.floor(Math.random() * allTypes.length)];
-    
-    if (moleType === 'ball_c08.gif') {
+    const rand = Math.random();
+    if (rand < 0.33) {
+      moleType = 'red_mole_01.png';
       mole.dataset.requiredHits = '5';
       mole.dataset.score = '500';
-    } else if (moleType === 'ball_b07.gif') {
+    } else if (rand < 0.66) {
+      moleType = 'orange_mole_01.png';
       mole.dataset.requiredHits = '3';
       mole.dataset.score = '300';
     } else {
+      const yellowIndex = Math.floor(Math.random() * 7) + 1;
+      moleType = `mole_0${yellowIndex}.png`;
       mole.dataset.requiredHits = '1';
       mole.dataset.score = '100';
     }
@@ -579,7 +606,15 @@ function showMole(mole) {
   
   mole.src = `./images/mole/${moleType}`;
   mole.dataset.hits = '0';
+  
+  // Reset transform and make visible
+  mole.style.transform = 'translateY(100%)';
   mole.style.display = 'block';
+  
+  // Force reflow
+  mole.offsetHeight;
+  
+  // Start rising animation
   mole.classList.add('active');
   activeMoles.add(mole);
   
@@ -587,11 +622,11 @@ function showMole(mole) {
   molePopSound.currentTime = 0;
   molePopSound.play();
   
-  // Auto-hide after 10 seconds
-  setTimeout(() => {
+  // Listen for transition end
+  mole.addEventListener('transitionend', () => {
     if (activeMoles.has(mole)) {
       hideMole(mole);
-      // Wait 0.2 seconds before potentially spawning a new mole
+      // 0.2s pause before next mole
       setTimeout(() => {
         const maxMoles = Math.min(6, Math.ceil((60 - timeLeft) / 10));
         if (activeMoles.size < maxMoles) {
@@ -603,7 +638,7 @@ function showMole(mole) {
         }
       }, 200);
     }
-  }, 10000);
+  }, { once: true });
 }
 
 function hideMole(mole) {
@@ -611,15 +646,15 @@ function hideMole(mole) {
   activeMoles.delete(mole);
   mole.dataset.hits = '0';
   
-  // Remove hit counter if it exists
+  // Remove hit counter
   if (mole.hitDisplay) {
     mole.hitDisplay.remove();
     mole.hitDisplay = null;
   }
   
-  setTimeout(() => {
-    mole.style.display = 'none';
-  }, 200); // Changed to match the 0.2s pause requirement
+  // Reset transform and hide
+  mole.style.transform = 'translateY(100%)';
+  mole.style.display = 'none';
 }
 
 function startPillSpawning() {
@@ -702,29 +737,19 @@ function whackMole(mole) {
   let requiredHits = parseInt(mole.dataset.requiredHits);
   mole.dataset.hits = hits;
 
-  // Create hit counter display if it doesn't exist
-  let hitDisplay = mole.querySelector('.hit-counter');
-  if (!hitDisplay && requiredHits > 1) {
-    hitDisplay = document.createElement('div');
-    hitDisplay.className = 'hit-counter';
-    hitDisplay.style.position = 'absolute';
-    hitDisplay.style.top = '-20px';
-    hitDisplay.style.left = '50%';
-    hitDisplay.style.transform = 'translateX(-50%)';
-    hitDisplay.style.color = '#fff';
-    hitDisplay.style.fontSize = '24px';
-    hitDisplay.style.textShadow = '2px 2px 2px #000';
-    hitDisplay.style.zIndex = '10';
-    mole.parentNode.appendChild(hitDisplay);
-    mole.hitDisplay = hitDisplay;
-  }
-
-  // Update hit counter display
-  if (hitDisplay && requiredHits > 1) {
+  // Simple hit counter display
+  if (requiredHits > 1) {
+    let hitDisplay = mole.hitDisplay;
+    if (!hitDisplay) {
+      hitDisplay = document.createElement('div');
+      hitDisplay.className = 'hit-counter';
+      mole.parentNode.appendChild(hitDisplay);
+      mole.hitDisplay = hitDisplay;
+    }
     hitDisplay.textContent = `${hits}/${requiredHits}`;
   }
 
-  // Show explosion effect and play sound for every hit
+  // Show explosion effect
   showHitExplosion(mole);
 
   // If enough hits, hide mole and add score
@@ -732,9 +757,6 @@ function whackMole(mole) {
     score += parseInt(mole.dataset.score);
     scoreText.textContent = score;
     hideMole(mole);
-    if (hitDisplay) {
-      hitDisplay.remove();
-    }
   }
 }
 
