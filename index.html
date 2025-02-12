@@ -328,6 +328,21 @@
       z-index: 4;
     }
 
+    /* Time Extension Notification */
+    #time-extension-overlay {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 80px;
+      color: #FFD700;
+      text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.8);
+      z-index: 10;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      font-family: 'KemcoPixelBold', sans-serif;
+    }
+
   </style>
 </head>
 <body>
@@ -429,6 +444,8 @@
   />
 </div>
 
+<div id="time-extension-overlay">+30 SECONDS!</div>
+
 <script>
 /* --------------------------------------------------
    PAGE DOM REFERENCES
@@ -469,6 +486,13 @@ let pillInterval = null;
 
 /* Simple pop sound for when mole appears (optional) */
 const molePopSound = new Audio('sounds/pop.wav');
+
+/* Time Extension Notification */
+let hasReached60Score = false;
+let hasReached90Score = false;
+let isTimePaused = false;
+let initialTimeExtensionDone = false;
+let secondTimeExtensionDone = false;
 
 /* --------------------------------------------------
    PAGE NAVIGATION
@@ -520,13 +544,59 @@ function startTimer() {
   backgroundMusic.currentTime = 0;
   backgroundMusic.play();
 
-  // Start spawning and a 60s countdown
+  // Start spawning and countdown
   startMoleSpawning();
   timerInterval = setInterval(() => {
-    timeLeft--;
-    timerText.textContent = timeLeft;
-    if(timeLeft <= 0) {
-      endGame();
+    if (!isTimePaused) {
+      timeLeft--;
+      timerText.textContent = timeLeft;
+
+      // Check first milestone (60 points in first 60 seconds)
+      if (!initialTimeExtensionDone && timeLeft === 0) {
+        if (score >= 60) {
+          initialTimeExtensionDone = true;
+          hasReached60Score = true;
+          extendTime();
+        } else {
+          endGame(); // End if didn't reach 60 points in first 60 seconds
+        }
+      }
+      // Check second milestone (90 points in added 30 seconds)
+      else if (initialTimeExtensionDone && !secondTimeExtensionDone && timeLeft === 0) {
+        if (score >= 90) {
+          secondTimeExtensionDone = true;
+          hasReached90Score = true;
+          extendTime();
+        } else {
+          endGame(); // End if didn't reach 90 points in the added 30 seconds
+        }
+      }
+      // End game if time runs out or reaches 120 seconds
+      else if (timeLeft <= 0 || timeLeft > 120) {
+        endGame();
+      }
+    }
+  }, 1000);
+}
+
+function extendTime() {
+  // Pause the game temporarily
+  isTimePaused = true;
+  
+  // Show the time extension notification
+  const timeExtensionOverlay = document.getElementById('time-extension-overlay');
+  timeExtensionOverlay.style.opacity = '1';
+  
+  // Start countdown
+  let countdown = 3;
+  const countdownInterval = setInterval(() => {
+    countdown--;
+    if (countdown === 0) {
+      // Hide notification and resume game
+      timeExtensionOverlay.style.opacity = '0';
+      timeLeft += 30; // Add 30 seconds
+      isTimePaused = false;
+      clearInterval(countdownInterval);
     }
   }, 1000);
 }
@@ -558,6 +628,11 @@ function endGame() {
 function resetGameData() {
   score = 0;
   timeLeft = 60;
+  hasReached60Score = false;
+  hasReached90Score = false;
+  isTimePaused = false;
+  initialTimeExtensionDone = false;
+  secondTimeExtensionDone = false;
   scoreText.textContent = score;
   timerText.textContent = timeLeft;
 
