@@ -371,39 +371,39 @@
   =======================================
 -->
 <div id="game-page" class="page">
-  <img id="game-bg" src="/images/bg.gif" alt="Gameplay Background" />
+  <img id="game-bg" src="./images/bg.gif" alt="Gameplay Background" />
 
-  <img id="title" src="/images/title.png" alt="Game Title" />
-  <img id="wewa-logo" src="/images/wewa-logo.png" alt="WeWa Logo" />
+  <img id="title" src="./images/title.png" alt="Game Title" />
+  <img id="wewa-logo" src="./images/wewa-logo.png" alt="WeWa Logo" />
   <!-- Score container -->
   <div id="score-container">
-    <img id="score-image" src="/images/totalscore.png" alt="Score BG" />
+    <img id="score-image" src="./images/totalscore.png" alt="Score BG" />
     <div id="score-text">0</div>
   </div>
 
   <!-- Game grid with updated structure -->
   <div id="game-container">
     <!-- Holes background image -->
-    <img id="holes" src="/images/holes.png" alt="Holes">
+    <img id="holes" src="./images/holes.png" alt="Holes">
     
     <!-- Moles -->
-    <img id="mole1" src="/images/mole/mole_01.png" alt="Mole 1" class="mole" data-index="1" data-hits="0" data-required-hits="1" data-score="100">
-    <img id="mole2" src="/images/mole/mole_02.png" alt="Mole 2" class="mole" data-index="2" data-hits="0" data-required-hits="1" data-score="100">
-    <img id="mole3" src="/images/mole/mole_03.png" alt="Mole 3" class="mole" data-index="3" data-hits="0" data-required-hits="1" data-score="100">
-    <img id="mole4" src="/images/mole/mole_04.png" alt="Mole 4" class="mole" data-index="4" data-hits="0" data-required-hits="1" data-score="100">
-    <img id="mole5" src="/images/mole/mole_05.png" alt="Mole 5" class="mole" data-index="5" data-hits="0" data-required-hits="1" data-score="100">
-    <img id="mole6" src="/images/mole/mole_06.png" alt="Mole 6" class="mole" data-index="6" data-hits="0" data-required-hits="1" data-score="100">
-    <img id="mole7" src="/images/mole/mole_07.png" alt="Mole 7" class="mole" data-index="7" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole1" src="./images/mole/mole_01.png" alt="Mole 1" class="mole" data-index="1" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole2" src="./images/mole/mole_02.png" alt="Mole 2" class="mole" data-index="2" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole3" src="./images/mole/mole_03.png" alt="Mole 3" class="mole" data-index="3" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole4" src="./images/mole/mole_04.png" alt="Mole 4" class="mole" data-index="4" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole5" src="./images/mole/mole_05.png" alt="Mole 5" class="mole" data-index="5" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole6" src="./images/mole/mole_06.png" alt="Mole 6" class="mole" data-index="6" data-hits="0" data-required-hits="1" data-score="100">
+    <img id="mole7" src="./images/mole/mole_07.png" alt="Mole 7" class="mole" data-index="7" data-hits="0" data-required-hits="1" data-score="100">
 
   <!-- Countdown at bottom -->
   <div id="countdown-container">
-    <img id="countdown-image" src="/images/countdown.png" alt="Countdown BG" />
+    <img id="countdown-image" src="images/countdown.png" alt="Countdown BG" />
     <div id="timer-text">60</div>
   </div>
 
   <!-- Explosions (hidden initially) -->
-  <img id="explosion" src="/images/explosion.png" alt="Explosion" />
-  <img id="explosion-gif" src="/images/explosion01.gif" alt="Explosion Animation" />
+  <img id="explosion" src="images/explosion.png" alt="Explosion" />
+  <img id="explosion-gif" src="images/explosion01.gif" alt="Explosion Animation" />
 
   <!-- AUDIO -->
   <audio id="explosion-sound" src="sounds/explosion.wav"></audio>
@@ -422,12 +422,12 @@
   <img
     id="record-bg"
     class="bg-image"
-    src="./images/endingpage.png"
+    src="images/endingpage.png"
     alt="Record Page Background"
   />
   <img
     id="scroll-record"
-    src="./images/recordScroll.png"
+    src="images/recordScroll.png"
     alt="Scroll Record"
   />
   <div id="record-list">
@@ -439,7 +439,7 @@
   </div>
   <img
     id="back-mainmenu"
-    src="./images/backToMainMenu.png"
+    src="images/backToMainMenu.png"
     alt="Back to Main Menu"
   />
 </div>
@@ -491,8 +491,7 @@ const molePopSound = new Audio('sounds/pop.wav');
 let hasReached60Score = false;
 let hasReached90Score = false;
 let isTimePaused = false;
-let initialTimeExtensionDone = false;
-let secondTimeExtensionDone = false;
+let isInExtendedTime = false;
 
 /* --------------------------------------------------
    PAGE NAVIGATION
@@ -552,26 +551,25 @@ function startTimer() {
       timerText.textContent = timeLeft;
 
       // Check first milestone (60 points in first 60 seconds)
-      if (!initialTimeExtensionDone && timeLeft === 0) {
+      if (!hasReached60Score && timeLeft === 0) {
         if (score >= 60) {
-          initialTimeExtensionDone = true;
           hasReached60Score = true;
+          isInExtendedTime = true;
           extendTime();
         } else {
           endGame(); // End if didn't reach 60 points in first 60 seconds
         }
       }
-      // Check second milestone (90 points in added 30 seconds)
-      else if (initialTimeExtensionDone && !secondTimeExtensionDone && timeLeft === 0) {
+      // Check second milestone (90 points in extended time)
+      else if (hasReached60Score && !hasReached90Score && timeLeft === 30) {
         if (score >= 90) {
-          secondTimeExtensionDone = true;
           hasReached90Score = true;
           extendTime();
         } else {
-          endGame(); // End if didn't reach 90 points in the added 30 seconds
+          endGame(); // End if didn't reach 90 points in extended time
         }
       }
-      // End game if time runs out or reaches 120 seconds
+      // End game if time reaches 120 seconds or goes to 0
       else if (timeLeft <= 0 || timeLeft > 120) {
         endGame();
       }
@@ -631,8 +629,7 @@ function resetGameData() {
   hasReached60Score = false;
   hasReached90Score = false;
   isTimePaused = false;
-  initialTimeExtensionDone = false;
-  secondTimeExtensionDone = false;
+  isInExtendedTime = false;
   scoreText.textContent = score;
   timerText.textContent = timeLeft;
 
