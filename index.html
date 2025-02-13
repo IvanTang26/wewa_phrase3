@@ -491,7 +491,7 @@ const molePopSound = new Audio('sounds/pop.wav');
 let hasReached60Score = false;
 let hasReached90Score = false;
 let isTimePaused = false;
-let isInExtendedTime = false;
+let totalTimePlayed = 0;
 
 /* --------------------------------------------------
    PAGE NAVIGATION
@@ -548,20 +548,20 @@ function startTimer() {
   timerInterval = setInterval(() => {
     if (!isTimePaused) {
       timeLeft--;
+      totalTimePlayed++;
       timerText.textContent = timeLeft;
 
-      // Check first milestone (60 points in first 60 seconds)
+      // First 60 seconds check
       if (!hasReached60Score && timeLeft === 0) {
         if (score >= 60) {
           hasReached60Score = true;
-          isInExtendedTime = true;
           extendTime();
         } else {
           endGame(); // End if didn't reach 60 points in first 60 seconds
         }
       }
-      // Check second milestone (90 points in extended time)
-      else if (hasReached60Score && !hasReached90Score && timeLeft === 30) {
+      // First extension check (at 90 seconds)
+      else if (hasReached60Score && !hasReached90Score && timeLeft === 0) {
         if (score >= 90) {
           hasReached90Score = true;
           extendTime();
@@ -569,8 +569,8 @@ function startTimer() {
           endGame(); // End if didn't reach 90 points in extended time
         }
       }
-      // End game if time reaches 120 seconds or goes to 0
-      else if (timeLeft <= 0 || timeLeft > 120) {
+      // End conditions
+      else if (timeLeft === 0 || totalTimePlayed >= 120) {
         endGame();
       }
     }
@@ -626,10 +626,10 @@ function endGame() {
 function resetGameData() {
   score = 0;
   timeLeft = 60;
+  totalTimePlayed = 0;
   hasReached60Score = false;
   hasReached90Score = false;
   isTimePaused = false;
-  isInExtendedTime = false;
   scoreText.textContent = score;
   timerText.textContent = timeLeft;
 
