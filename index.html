@@ -275,6 +275,20 @@
       animation: scorePopup 0.8s ease-out forwards;
     }
 
+    .time-bonus-popup {
+      position: absolute;
+      color: #00FF00;
+      font-family: 'KemcoPixelBold', sans-serif;
+      font-size: 36px;
+      text-shadow: 2px 2px 0 #000,
+                  -2px -2px 0 #000,
+                  2px -2px 0 #000,
+                  -2px 2px 0 #000;
+      z-index: 6;
+      pointer-events: none;
+      animation: scorePopup 0.8s ease-out forwards;
+    }
+
     /* --- WeWa Logo (optional) --- */
     #wewa-logo {
       position: absolute;
@@ -312,11 +326,51 @@
       top: 600px;
       left: 50%;
       transform: translateX(-50%);
-      width: 300px;
+      width: 500px;
       color: #000;
       font-size: 30px;
-      text-align: left;
+      text-align: center;
       z-index: 3;
+    }
+    #finalScoreDisplay {
+      position: relative;
+      font-size: 36px;
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    #score-container-record {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    #score-image-record {
+      width: 200px;
+    }
+    #score-text-record {
+      position: absolute;
+      top: 70%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.5em;
+      color: #000;
+      letter-spacing: 2px;
+    }
+    #start-time-display {
+      font-size: 24px;
+      margin-top: 10px;
+      color: #333;
+    }
+    #time-records {
+      margin-top: 30px;
+      font-size: 12px;
+      color: #444;
+      text-align: center;
+      width: 100%;
+    }
+    .time-record {
+      margin: 5px 0;
+      text-align: center;
     }
     #back-mainmenu {
       position: absolute;
@@ -431,11 +485,12 @@
     alt="Scroll Record"
   />
   <div id="record-list">
-    <p id="finalScoreDisplay" style="font-size:36px;">最終分數: 0</p>
-    <p>ABC — 820</p>
-    <p>CHAN — 700</p>
-    <p>LEE — 650</p>
-    <p>WONG — 500</p>
+    <div id="score-container-record">
+      <img id="score-image-record" src="./images/totalscore.png" alt="Score BG" />
+      <div id="score-text-record">00000</div>
+    </div>
+    <div id="start-time-display">START SCORE TIME</div>
+    <div id="time-value-display">00.0</div>
   </div>
   <img
     id="back-mainmenu"
@@ -479,10 +534,13 @@ let activeMoles = new Set();
 
 /* Score/Time Tracking */
 let score = 0;
-let timeLeft = 60;
+let gamePageScore = document.getElementById('score-text');
+let recordPageScore = document.getElementById('score-text-record');
+let timeLeft = 60000; // 60 seconds in milliseconds
 let timerInterval = null;
 let moleInterval = null;
 let pillInterval = null;
+let firstScoreTime = null; // Track time of first score
 
 /* Simple pop sound for when mole appears (optional) */
 const molePopSound = new Audio('sounds/pop.wav');
@@ -547,34 +605,15 @@ function startTimer() {
   startMoleSpawning();
   timerInterval = setInterval(() => {
     if (!isTimePaused) {
-      timeLeft--;
-      totalTimePlayed++;
-      timerText.textContent = timeLeft;
+      timeLeft -= 100; // Decrease by 100ms
+      // Display time in seconds with one decimal place
+      timerText.textContent = (timeLeft / 1000).toFixed(1);
 
-      // First 60 seconds check
-      if (!hasReached60Score && timeLeft === 0) {
-        if (score >= 60) {
-          hasReached60Score = true;
-          extendTime();
-        } else {
-          endGame(); // End if didn't reach 60 points in first 60 seconds
-        }
-      }
-      // First extension check (at 90 seconds)
-      else if (hasReached60Score && !hasReached90Score && timeLeft === 0) {
-        if (score >= 90) {
-          hasReached90Score = true;
-          extendTime();
-        } else {
-          endGame(); // End if didn't reach 90 points in extended time
-        }
-      }
-      // End conditions
-      else if (timeLeft === 0 || totalTimePlayed >= 120) {
+      if (timeLeft <= 0) {
         endGame();
       }
     }
-  }, 1000);
+  }, 100); // Update every 100ms for smoother countdown
 }
 
 function extendTime() {
@@ -592,7 +631,7 @@ function extendTime() {
     if (countdown === 0) {
       // Hide notification and resume game
       timeExtensionOverlay.style.opacity = '0';
-      timeLeft += 30; // Add 30 seconds
+      timeLeft += 30000; // Add 30 seconds in milliseconds
       isTimePaused = false;
       clearInterval(countdownInterval);
     }
@@ -619,19 +658,31 @@ function endGame() {
   setTimeout(() => {
     gamePage.classList.remove('active');
     recordPage.classList.add('active');
-    finalScoreDisplay.textContent = "最終分數: " + score;
+    
+    // Update score display
+    const scoreTextRecord = document.getElementById('score-text-record');
+    scoreTextRecord.textContent = score.toString().padStart(5, '0');
+    
+    // Update time display with three decimal places
+    const timeValueDisplay = document.getElementById('time-value-display');
+    timeValueDisplay.textContent = firstScoreTime ? firstScoreTime : '00.000';
   }, 500);
 }
 
 function resetGameData() {
   score = 0;
-  timeLeft = 60;
-  totalTimePlayed = 0;
-  hasReached60Score = false;
-  hasReached90Score = false;
-  isTimePaused = false;
-  scoreText.textContent = score;
-  timerText.textContent = timeLeft;
+  timeLeft = 60000;
+  firstScoreTime = null;
+  // Reset both score displays
+  gamePageScore.textContent = "00000";
+  recordPageScore.textContent = "00000";
+  timerText.textContent = (timeLeft / 1000).toFixed(1);
+
+  // Reset time display to default format
+  const timeValueDisplay = document.getElementById('time-value-display');
+  if (timeValueDisplay) {
+    timeValueDisplay.textContent = '00.000';
+  }
 
   backgroundMusic.pause();
   backgroundMusic.currentTime = 0;
@@ -654,11 +705,11 @@ function startMoleSpawning() {
 
   // Initial spawn of moles
   spawnNewMole();
-  if (timeLeft > 50) { // First 10 seconds (60-50)
+  if (timeLeft > 50000) { // First 10 seconds (60-50)
     spawnNewMole();
   }
 
-  // Spawn moles every 2 seconds
+  // Spawn moles every 3 seconds (changed from 2 seconds)
   moleInterval = setInterval(() => {
     // Remove random active mole
     const activeArray = Array.from(activeMoles);
@@ -671,10 +722,10 @@ function startMoleSpawning() {
     spawnNewMole();
     
     // In first 10 seconds, maintain 2 moles
-    if (timeLeft > 50 && activeMoles.size < 2) {
+    if (timeLeft > 50000 && activeMoles.size < 2) {
       spawnNewMole();
     }
-  }, 2000); // Check every 2 seconds
+  }, 3000); // Changed to 3 seconds
 }
 
 function spawnNewMole() {
@@ -690,13 +741,14 @@ function showMole(mole) {
   
   // Determine which type of mole to show based on time
   let moleType;
-  if (timeLeft > 45) {
+  const timeInSeconds = timeLeft / 1000;
+  if (timeInSeconds > 45) {
     // 0-15 seconds: Only yellow moles
     moleType = './wewa/6.red ball/yellow_01.png';
     mole.dataset.requiredHits = '1';
     mole.dataset.score = '1';
     mole.dataset.type = 'yellow';
-  } else if (timeLeft > 30) {
+  } else if (timeInSeconds > 30) {
     // 15-30 seconds: Yellow and orange moles
     if (Math.random() < 0.3) { // 30% chance for orange mole
       moleType = './wewa/6.red ball/orange_01.png';
@@ -714,9 +766,10 @@ function showMole(mole) {
     const rand = Math.random();
     if (rand < 0.2) { // 20% chance for red mole
       moleType = './wewa/6.red ball/red_01.png';
-      mole.dataset.requiredHits = '5';
-      mole.dataset.score = '5';
+      mole.dataset.requiredHits = '1'; // Changed to 1 hit
+      mole.dataset.score = '1'; // Changed to 1 score
       mole.dataset.type = 'red';
+      mole.dataset.timeBonus = '5000'; // 5 seconds in milliseconds
     } else if (rand < 0.5) { // 30% chance for orange mole
       moleType = './wewa/6.red ball/orange_01.png';
       mole.dataset.requiredHits = '3';
@@ -764,7 +817,7 @@ function hideMole(mole) {
 
 function startPillSpawning() {
   pillInterval = setInterval(() => {
-    const pillCount = Math.min(6, Math.ceil((60 - timeLeft) / 10));
+    const pillCount = Math.min(6, Math.ceil((60000 - timeLeft) / 1000));
     spawnPills(pillCount);
   }, 10000);
 }
@@ -879,25 +932,12 @@ function animateOrangeMole(mole, hits) {
 }
 
 function animateRedMole(mole, hits) {
-  switch(hits) {
-    case 1:
-      mole.src = './wewa/6.red ball/red_thick_01.png';
-      break;
-    case 2:
-      mole.src = './wewa/6.red ball/orange_01.png';
-      break;
-    case 3:
-      mole.src = './wewa/6.red ball/orange_thick_01.png';
-      break;
-    case 4:
-      mole.src = './wewa/6.red ball/yellow_01.png';
-      break;
-    case 5:
-      mole.src = './wewa/6.red ball/yellow_thick_01.png';
-      showExplosionAndScore(mole);
-      break;
+  if (hits === 1) {
+    mole.src = './wewa/6.red ball/red_thick_01.png';
+    // Add 5 seconds when hitting red mole
+    timeLeft += parseInt(mole.dataset.timeBonus);
+    showExplosionAndScore(mole);
   }
-  updateHitCounter(mole, hits, 5);
 }
 
 function updateHitCounter(mole, hits, requiredHits) {
@@ -914,27 +954,23 @@ function updateHitCounter(mole, hits, requiredHits) {
 }
 
 function showExplosionAndScore(mole) {
-  // Show explosion effect only after final yellow_thick hit
   showHitExplosion(mole);
   
   // Add score based on mole type
   let scoreValue = parseInt(mole.dataset.score);
   score += scoreValue;
-  scoreText.textContent = score;
+  // Update both score displays
+  gamePageScore.textContent = score.toString().padStart(5, '0');
+  recordPageScore.textContent = score.toString().padStart(5, '0');
   
-  // Hide mole and spawn new one
-  setTimeout(() => {
-    // Add falling animation before hiding
-    mole.style.transition = 'transform 0.2s ease-in';
-    mole.style.transform = 'translateY(100%) scale(0.5)';
-    
-    setTimeout(() => {
-      mole.style.transition = '';
-      mole.style.transform = '';
-      hideMole(mole);
-      spawnNewMole();
-    }, 200);
-  }, 300);
+  // Record time of first score with three decimal places
+  if (firstScoreTime === null) {
+    firstScoreTime = ((60000 - timeLeft) / 1000).toFixed(3);
+  }
+  
+  // Immediately hide mole without animation
+  hideMole(mole);
+  spawnNewMole();
 }
 
 /* --------------------------------------------------
@@ -948,17 +984,17 @@ function showHitExplosion(mole) {
   const offsetTop     = moleRect.top  - gamePageRect.top;
 
   // Position static explosion sprite
-  explosion.style.width   = moleRect.width + 'px';
-  explosion.style.height  = moleRect.height + 'px';
-  explosion.style.left    = offsetLeft + 'px';
-  explosion.style.top     = offsetTop + 'px';
+  explosion.style.width   = moleRect.width * 1.5 + 'px';
+  explosion.style.height  = moleRect.height * 1.5 + 'px';
+  explosion.style.left    = (offsetLeft - moleRect.width * 0.25) + 'px';
+  explosion.style.top     = (offsetTop - moleRect.height * 0.25) + 'px';
   explosion.style.display = 'block';
 
   // Position animated GIF
-  explosionGif.style.width   = moleRect.width + 'px';
-  explosionGif.style.height  = moleRect.height + 'px';
-  explosionGif.style.left    = offsetLeft + 'px';
-  explosionGif.style.top     = offsetTop + 'px';
+  explosionGif.style.width   = moleRect.width * 2 + 'px';
+  explosionGif.style.height  = moleRect.height * 2 + 'px';
+  explosionGif.style.left    = (offsetLeft - moleRect.width * 0.5) + 'px';
+  explosionGif.style.top     = (offsetTop - moleRect.height * 0.5) + 'px';
   explosionGif.style.display = 'block';
 
   // Create and position score popup
@@ -969,6 +1005,21 @@ function showHitExplosion(mole) {
   scorePopup.style.left = `${offsetLeft + moleRect.width/2}px`;
   scorePopup.style.top = `${offsetTop}px`;
   gamePage.appendChild(scorePopup);
+
+  // If it's a red mole, show the time bonus popup
+  if (mole.dataset.type === 'red') {
+    const timeBonusPopup = document.createElement('div');
+    timeBonusPopup.className = 'time-bonus-popup';
+    timeBonusPopup.textContent = '+5 秒';
+    timeBonusPopup.style.left = `${offsetLeft + moleRect.width/2}px`;
+    timeBonusPopup.style.top = `${offsetTop - 40}px`; // Position above the score popup
+    gamePage.appendChild(timeBonusPopup);
+    
+    // Remove time bonus popup after animation
+    setTimeout(() => {
+      timeBonusPopup.remove();
+    }, 800);
+  }
 
   // Play explosion sound
   explosionSound.currentTime = 0;
