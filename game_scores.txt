@@ -1,5 +1,32 @@
-[2025-02-20 09:58:03] Score: 00003 | Time: 60.00s | First Hit: 0.800s | Accuracy: 100%
-[2025-02-20 11:39:27] Score: 00150 | Time: 60.00s | First Hit: 0.900s | Accuracy: 075%
-[2025-02-20 11:41:53] Score: 00673 | Time: 60.00s | First Hit: 0.700s | Accuracy: 042%
-[2025-02-20 12:04:27] Score: 00037 | Time: 60.00s | First Hit: 1.000s | Accuracy: 050%
-[2025-02-20 12:11:50] Score: 00011 | Time: 60.00s | First Hit: 0.793s | Accuracy: 058%
+[2025-02-20 09:58:03] Score: 00003  | First Hit: 0.800s | Accuracy: 100%
+[2025-02-20 11:39:27] Score: 00150  | First Hit: 0.900s | Accuracy: 075%
+[2025-02-20 11:41:53] Score: 00673  | First Hit: 0.700s | Accuracy: 042%
+[2025-02-20 12:04:27] Score: 00037  | First Hit: 1.000s | Accuracy: 050%
+[2025-02-20 12:11:50] Score: 00011  | First Hit: 0.793s | Accuracy: 058%
+[2025-02-20 14:26:23] Score: 00001  | First Hit: 1.957s | Accuracy: 025%
+[2025-02-20 15:02:42] Score: 00023  | First Hit: 1.782s | Accuracy: 058%
+[2025-02-20 15:41:24] Score: 00030  | First Hit: 1.625s | Accuracy: 034%
+[2025-02-20 15:44:55] Score: 00000  | First Hit: 0.000s | Accuracy: 000%
+[2025-02-21 00:21:29] Score: 00051 | Time: 60.00s | First Hit Bonus: 119.080s | Accuracy: 082%
+[2025-02-21 00:29:22] Score: 00015 | Time: 60.00s | First Hit Bonus: 118.914s | Accuracy: 026%
+[2025-02-21 00:57:36] Score: 00029 | Time: 60.00s | First Hit: 1.135s | Accuracy: 052%
+[2025-02-21 01:03:53] Score: 00001 | Time: 60.00s | First Hit: 1.032s | Accuracy: 100%
+[2025-02-21 01:16:01] Score: 00039 | Time: 60.00s | First Hit: 1.646s | Accuracy: 069%
+[2025-02-21 01:18:59] Score: 00107 | Time: 60.00s | First Hit: 1.015s | Accuracy: 069%
+[2025-02-21 01:36:09] Score: 00083 | Time: 60.00s | First Hit: 0.879s | Accuracy: 046%
+[2025-02-21 01:42:42] Score: 00043 | Time: 60.00s | First Hit: 1.970s | Accuracy: 049%
+[2025-02-21 01:54:15] Score: 00014 | Time: 60.00s | First Hit: 0.624s | Accuracy: 082%
+[2025-02-21 02:07:55] Score: 00030 | Time: 60.00s | First Hit: 4.055s | Accuracy: 070%
+[2025-02-21 02:09:48] Score: 00036 | Time: 60.00s | First Hit: 1.849s | Accuracy: 045%
+[2025-02-21 02:12:51] Score: 00000 | Time: 60.00s | First Hit: 0.000s | Accuracy: 000%
+[2025-02-21 02:15:37] Score: 00011 | Time: 60.00s | First Hit: 50.236s | Accuracy: 062%
+[2025-02-21 02:18:07] Score: 00012 | Time: 60.00s | First Hit: 1.209s | Accuracy: 033%
+[2025-02-21 02:30:19] Score: 00131 | Time: 60.00s | First Hit: 2.064s | Accuracy: 046%
+[2025-02-21 02:32:50] Score: 00032 | Time: 60.00s | First Hit: 1.596s | Accuracy: 070%
+[2025-02-21 02:33:58] Score: 00084 | Time: 60.00s | First Hit: 1.429s | Accuracy: 044%
+[2025-02-21 02:39:38] Score: 00016 | Time: 60.00s | First Hit: 1.315s | Accuracy: 047%
+[2025-02-21 02:42:36] Score: 00002 | Time: 60.00s | First Hit: 1.173s | Accuracy: 029%
+[2025-02-21 02:53:32] Score: 00097 | Time: 60.00s | First Hit: 1.355s | Accuracy: 072%
+[2025-02-21 02:55:05] Score: 00102 | Time: 60.00s | First Hit: 1.847s | Accuracy: 070%
+[2025-02-21 03:01:36] Score: 00016 | Time: 60.00s | First Hit: 1.433s | Accuracy: 057%
+[2025-02-21 03:05:47] Score: 00002 | Time: 60.00s | First Hit: 2.145s | Accuracy: 025%

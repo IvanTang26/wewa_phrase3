@@ -29,48 +29,41 @@ class WhackAMole {
             countdown: document.getElementById('countdownSound'),
             gameStart: document.getElementById('gameStartSound'),
             backgroundMusic: document.getElementById('backgroundMusic'),
-            gameOver: document.getElementById('gameOverSound')
+            gameOver: document.getElementById('gameOverSound'),
+            hitColorChange: document.getElementById('hitColorChangeSound'),
+            bubbleExplosion: document.getElementById('bubbleExplosionSound')
         };
 
         this.initializeEventListeners();
     }
 
     initializeEventListeners() {
-        // Main Menu to Rules
-        this.screens.mainMenu.querySelector('button').addEventListener('click', () => {
-            this.switchScreen('mainMenu', 'rules');
-        });
-
-        // Rules to Waiting
-        this.screens.rules.querySelector('button').addEventListener('click', () => {
-            this.switchScreen('rules', 'waiting');
-        });
-
-        // Waiting to Game
-        this.screens.waiting.querySelector('button').addEventListener('click', () => {
-            this.startCountdown();
-        });
-
-        // Setup keyboard events for hole hits
+        // Keyboard input for game controls
         document.addEventListener('keydown', (e) => this.handleKeyPress(e));
 
-        // Back to Main Menu button (only in final score screen)
-        const backButton = this.screens.finalScore.querySelector('.back-button');
-        backButton.addEventListener('click', () => {
-            this.resetGame();
-            this.switchScreen('finalScore', 'mainMenu');
-        });
+        // Background music initialization
+        this.sounds.backgroundMusic.volume = 0.1;
 
-        // Set background music volume
-        this.sounds.backgroundMusic.volume = 0;
-
-        // Add keyboard event listener for backspace and R key
+        // Global keyboard handlers
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'Backspace') {
-                this.handleBackspace();
-            }
-            if (e.key.toLowerCase() === 'r') {
-                this.handleRestart();
+            // Backspace/R key functionality
+            if (e.key === 'Backspace') this.handleBackspace();
+            if (e.key.toLowerCase() === 'r') this.handleRestart();
+            
+            // Screen navigation
+            const currentScreen = this.getCurrentScreen();
+            switch(currentScreen) {
+                case 'mainMenu':
+                    this.switchScreen('mainMenu', 'rules');
+                    break;
+                case 'rules':
+                    this.switchScreen('rules', 'waiting');
+                    this.startCountdown();
+                    break;
+                case 'finalScore':
+                    this.resetGame();
+                    this.switchScreen('finalScore', 'mainMenu');
+                    break;
             }
         });
     }
@@ -118,6 +111,7 @@ class WhackAMole {
             this.score += 1;
             this.showExplosion(hole);
             this.showScorePopup(hole, '+1', 'points');
+            this.sounds.bubbleExplosion.play();
             this.usedPositions.delete(parseInt(mole.dataset.position));
             hole.removeChild(mole);
             this.activeMoles.delete(parseInt(hole.dataset.index));
@@ -128,24 +122,22 @@ class WhackAMole {
             if (hits === 1) {
                 this.successfulHits++;
                 mole.src = '6.ball_character/orange_02/orange_02_a1.gif';
+                this.sounds.hitColorChange.play();
                 
                 setTimeout(() => {
                     if (mole.parentNode === hole) {
                         mole.src = '6.ball_character/orange_02/orange_02b.png';
-                        mole.style.width = '100%';
-                        mole.style.height = '50%';
                     }
                 }, 500);
             } else if (hits === 2) {
                 this.successfulHits++;
                 mole.src = '6.ball_character/orange_02/orange_02_b1.gif';
-                mole.style.width = '100%';
-                mole.style.height = '100%';
+                this.sounds.hitColorChange.play();
+            
                 setTimeout(() => {
                     if (mole.parentNode === hole) {
                         mole.src = '6.ball_character/orange_02/orange_02c.png';
-                        mole.style.width = '100%';
-                        mole.style.height = '50%';
+                        
                     }
                 }, 500);
             } else if (hits === 3) {
@@ -153,6 +145,7 @@ class WhackAMole {
                 this.score += 5;
                 this.showExplosion(hole);
                 this.showScorePopup(hole, '+5', 'points');
+                this.sounds.bubbleExplosion.play();
                 this.usedPositions.delete(parseInt(mole.dataset.position));
                 hole.removeChild(mole);
                 this.activeMoles.delete(parseInt(hole.dataset.index));
@@ -163,6 +156,7 @@ class WhackAMole {
             this.timer = Math.min(this.timer + 5000, this.maxTime);
             this.showExplosion(hole);
             this.showScorePopup(hole, '+5秒', 'time');
+            this.sounds.bubbleExplosion.play();
             this.usedPositions.delete(parseInt(mole.dataset.position));
             hole.removeChild(mole);
             this.activeMoles.delete(parseInt(hole.dataset.index));
@@ -296,27 +290,23 @@ class WhackAMole {
         mole.dataset.position = position;
         
         if (type === 'yellow') {
-            mole.src = '6.ball_character/yellow_01/yellow_01_rise.gif';
-            mole.style.width = '100%';
-            mole.style.height = '100%';
+            mole.src = '6.ball_character/yellow_01/yellow_01_rise1.gif';
+            
             setTimeout(() => {
                 if (mole.parentNode === hole) {
                     mole.src = '6.ball_character/yellow_01/yellow_01.png';
-                    mole.style.width = '100%';
-                    mole.style.height = '50%';
+                    
                 }
             }, 500);
         } else if (type === 'orange') {
-            mole.src = '6.ball_character/orange_02/orange_02_rise.gif';
-            mole.style.width = '100%';
-            mole.style.height = '100%';
+            mole.src = '6.ball_character/orange_02/orange_02_rise1.gif';
+            
             this.orangeBallHits[hole.dataset.index] = 0;
             
             setTimeout(() => {
                 if (mole.parentNode === hole) {
                     mole.src = '6.ball_character/orange_02/orange_02a.png';
-                    mole.style.width = '100%';
-                    mole.style.height = '50%';
+                    
                 }
             }, 500);
         }
@@ -339,7 +329,7 @@ class WhackAMole {
                     delete this.orangeBallHits[hole.dataset.index];
                 }
             }
-        }, type === 'red' ? 2000 : 15000);
+        }, type === 'red' ? 3000 : 15000);
     }
 
     spawnRedBall() {
@@ -354,8 +344,7 @@ class WhackAMole {
         const mole = document.createElement('img');
         mole.className = 'mole';
         mole.dataset.type = 'red';
-        mole.style.width = '80%';
-        mole.style.height = '50%';
+        
         
         // Get a unique position
         const position = this.getAvailablePosition();
@@ -367,8 +356,7 @@ class WhackAMole {
         setTimeout(() => {
             if (mole.parentNode === randomHole) {
                 mole.src = '6.ball_character/red_01/red_01.png';
-                mole.style.width = '100%';
-                mole.style.height = '50%';
+                
             }
         }, 500);
         
@@ -386,7 +374,7 @@ class WhackAMole {
                 randomHole.removeChild(mole);
                 this.activeMoles.delete(parseInt(randomHole.dataset.index));
             }
-        }, 2000);
+        }, 3000);
     }
 
     showExplosion(hole) {
@@ -467,14 +455,6 @@ class WhackAMole {
         const scoreText = this.screens.finalScore.querySelector('.score-text');
         scoreText.textContent = this.padScore(this.score);
         
-        // Update start time display
-        const startTime = this.screens.finalScore.querySelector('.start-time');
-        if (this.firstHitTime !== null) {
-            startTime.textContent = this.firstHitTime.toFixed(3).padStart(6, '0');
-        } else {
-            startTime.textContent = '00.000';
-        }
-
         // Update accuracy with new formula
         const accuracy = this.screens.finalScore.querySelector('.accuracy');
         const totalAttempts = this.successfulHits + this.emptyHits;
