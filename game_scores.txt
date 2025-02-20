@@ -1,0 +1,5 @@
+[2025-02-20 09:58:03] Score: 00003 | Time: 60.00s | First Hit: 0.800s | Accuracy: 100%
+[2025-02-20 11:39:27] Score: 00150 | Time: 60.00s | First Hit: 0.900s | Accuracy: 075%
+[2025-02-20 11:41:53] Score: 00673 | Time: 60.00s | First Hit: 0.700s | Accuracy: 042%
+[2025-02-20 12:04:27] Score: 00037 | Time: 60.00s | First Hit: 1.000s | Accuracy: 050%
+[2025-02-20 12:11:50] Score: 00011 | Time: 60.00s | First Hit: 0.793s | Accuracy: 058%
