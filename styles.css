@@ -1,8 +1,289 @@
+@font-face {
+    font-family: 'KemocoPixelBold';
+    src: url('fonts/KemcoPixelBold.ttf') format('truetype');
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
 body {
-    font-family: Arial, sans-serif;
-    background: url('./bg/bg.gif') center center/cover;
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
+    background: #bf83d0;
+}
+
+.game-container {
+    position: relative;
+    width: 56.25vh; /* 9:16 aspect ratio */
+    height: 100vh;
+    overflow: hidden;
+}
+
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+}
+
+.screen.active {
+    display: block;
+}
+
+.full-screen {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.invisible-button {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.countdown-gif {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.hidden {
+    display: none;
+}
+
+/* Game Screen Styles */
+.game-background {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+}
+
+.holes-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+}
+
+.hole {
+    position: absolute;
+    width: 20%;
+    height: 20%;
+    cursor: pointer;
+}
+
+.hole-outside {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 3;
+    pointer-events: none;
+}
+
+.mole {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    transition: transform 0.4s;
+}
+
+/* Mole Positions - Adjusted to match holes */
+.mole.position-1 { left: 0%; bottom: 0%; }
+.mole.position-2 { left: 0%; bottom: 0%; }
+.mole.position-3 { left: 0%; bottom: 0%; }
+.mole.position-4 { left: 0%; bottom: 0%; }
+.mole.position-5 { left: 0%; bottom: 0%; }
+.mole.position-6 { left: 0%; bottom: 0%; }
+.mole.position-7 { left: 0%; bottom: 0%; }
+
+.explosion {
+    position: fixed;
+    width: 400px;
+    height: 400px;
+    z-index: 5;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+}
+
+/* Score Container */
+.score-container {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 6;
+    width: 40%;
+    text-align: center;
+}
+
+.score-background {
+    width: 100%;
+    height: auto;
+}
+
+.score-value {
+    position: absolute;
+    top: 72%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'KemocoPixelBold', sans-serif;
+    font-size: 100px;
+    color: black;
+}
+
+/* Timer Container */
+.timer-container {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    width: 20%;
+    text-align: center;
+}
+
+.timer-background {
+    width: 100%;
+    height: auto;
+}
+
+.timer-value {
+    position: absolute;
+    top: 70%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'KemocoPixelBold', sans-serif;
+    font-size: 100px;
+    color: black;
+}
+
+/* Score popup colors */
+.score-popup.points {
+    color: #4df2d5;
+    font-size: 60px;
+}
+
+.score-popup.time {
+    color: orange;
+    font-size: 60px;
+}
+
+/* Final Score Screen */
+.final-score-display {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    width: 50%;
+}
+
+.final-score-display .score-background {
+    width: 100%;
+    height: auto;
+    margin-bottom: 20px;
+}
+
+.score-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'KemocoPixelBold', sans-serif;
+    font-size: 100px;
+    color: black;
+}
+
+.start-time-label {
+    font-family: 'KemocoPixelBold', sans-serif;
+    color: black;
+    font-size: 24px;
+    margin-top: 20px;
+}
+
+.start-time {
+    font-family: 'KemocoPixelBold', sans-serif;
+    color: black;
+    font-size: 36px;
+    margin-top: 10px;
+}
+
+.back-button {
+    position: absolute;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%);
+    cursor: pointer;
+    width: 785px;
+    z-index: 1000;
+}
+
+/* Hole positions - Adjusted to match moles */
+.hole[data-index="0"] { top: 45%; left: 23%; }
+.hole[data-index="1"] { top: 45%; left: 56%; }
+.hole[data-index="2"] { top: 56%; left: 8%; }
+.hole[data-index="3"] { top: 56%; left: 41%; }
+.hole[data-index="4"] { top: 56%; left: 73%; }
+.hole[data-index="5"] { top: 66%; left: 23%; }
+.hole[data-index="6"] { top: 66%; left: 56%; }
+
+/* Score popup animation */
+@keyframes scorePopup {
+    0% { transform: scale(1) translateY(0); opacity: 1; }
+    100% { transform: scale(1.5) translateY(-20px); opacity: 0; }
+}
+
+.score-popup {
+    position: absolute;
+    font-family: 'KemocoPixelBold', sans-serif;
+    color: white;
+    font-size: 36px;
+    z-index: 7;
+    pointer-events: none;
+    animation: scorePopup 0.5s ease-out forwards;
+}
+
+/* End screen styles */
+.end-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    width: 60%;
+    display: none;
+}
+
+.end-overlay.show {
+    display: block;
+}
+
+.accuracy-label {
+    font-family: 'KemocoPixelBold', sans-serif;
+    color: black;
+    font-size: 24px;
+    margin-top: 20px;
+}
+
+.accuracy {
+    font-family: 'KemocoPixelBold', sans-serif;
+    color: black;
+    font-size: 36px;
+    margin-top: 10px;
 } 
