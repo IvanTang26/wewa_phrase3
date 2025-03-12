@@ -3,23 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Wewa Phrase 3</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="game-container">
-        <!-- Membership -->
-        <div id="membership" class="screen active">
-            <img src="1.member/member.png" alt="Membership" class="full-screen">
-            <div class="membership-form">
-                <input type="text" id="phoneNumber" placeholder="手提電話號碼">
-                <button id="submitMembership" class="submit-button">確認</button>
+        <!-- Main Menu -->
+        <div id="mainMenu" class="screen active">
+            <img src="2.main menu/p3mainmenu.png" alt="Main Menu" class="full-screen">
+            <div class="phone-input-container">
+                <input type="tel" id="phoneNumber" placeholder="手提電話號碼" maxlength="8" pattern="[0-9]{8}">
+                <input type="text" id="memberName" placeholder="姓名" maxlength="30">
+                <input type="email" id="email" placeholder="電子郵件" maxlength="50">
+                <button id="submitPhone"></button>
+                <div id="memberStatus" class="member-status"></div>
             </div>
+            <!-- Invisible link to WeWa Club registration page -->
+            <a href="https://ad.doubleclick.net/ddm/trackclk/N555206.5164393WWCLUBWEBSITE/B33204316.416635679;dc_trk_aid=609096045;dc_trk_cid=231594496;dc_lat=;dc_rdid=;tag_for_child_directed_treatment=;tfua=;gdpr=$%7BGDPR%7D;gdpr_consent=$%7BGDPR_CONSENT_755%7D;ltd=;dc_tdv=1" target="_blank" rel="noopener noreferrer" class="wewa-registration-link" title="立即註冊成為WeWa Club 會員"></a>
+            <!-- Terms and conditions link -->
+            <a href="https://club.wewacard.com/pakpakpak_tc" target="_blank" rel="noopener noreferrer" class="terms-link" title="活動受條款及細則約束"></a>
+            <button class="invisible-button"></button>
         </div>
 
-        <!-- Main Menu -->
-        <div id="mainMenu" class="screen">
-            <img src="2.main menu/mainmenu.gif" alt="Main Menu" class="full-screen">
+        <!-- Mode Selection -->
+        <div id="mode" class="screen">
+            <img src="11.mode/mode.gif" alt="Mode Selection" class="full-screen">
+            <!-- Invisible area 1 - directs to game background 1 -->
+            <div class="mode-area mode-area-1" data-game-background="game3_background_01.gif" data-waiting="waiting_01.gif"></div>
+            <!-- Invisible area 2 - directs to game background 2 -->
+            <div class="mode-area mode-area-2" data-game-background="game3_background_02.gif" data-waiting="waiting_02.gif"></div>
             <button class="invisible-button"></button>
         </div>
 
@@ -31,14 +46,25 @@
 
         <!-- Waiting -->
         <div id="waiting" class="screen">
-            <img src="10.waiting/waiting.gif" alt="Waiting" class="full-screen">
+            <img src="10.waiting/waiting.gif" alt="Waiting" class="full-screen" id="waitingImage">
             <img src="images/countdown321.gif" alt="Countdown" class="countdown-gif hidden">
             <button class="invisible-button"></button>
         </div>
-
+        
         <!-- Game -->
         <div id="game" class="screen">
-            <img src="4.background/game_background.gif" alt="Game Background" class="game-background">
+            <!-- Game background -->
+            <img src="4.background/game_background.gif" alt="Game Background" class="game-background" id="gameBackground">
+            
+            <!-- Mode overlays as layers inside the game screen -->
+            <div id="mode1Overlay" class="mode-overlay">
+                <img src="12.mode1/mode1.gif" alt="Mode 1 Overlay" class="full-screen">
+            </div>
+            
+            <div id="mode2Overlay" class="mode-overlay">
+                <img src="13.mode2/mode2.gif" alt="Mode 2 Overlay" class="full-screen">
+            </div>
+            
             <div class="holes-container">
                 <div class="hole" data-index="0" data-key="1"></div>
                 <div class="hole" data-index="1" data-key="2"></div>
@@ -69,15 +95,29 @@
         <div id="finalScore" class="screen">
             <img src="7.final score/finalscore.png" alt="Final Score" class="full-screen">
             <div class="final-score-display">
-                <img src="8.score/totalscore.png" alt="Total Score" class="score-background">
-                <div class="score-text">00000</div>
-                <div class="accuracy-label">ACCURACY</div>
-                <div class="accuracy">0%</div>
-                <div class="time-label">TOTAL TIME</div>
-                <div class="total-time">0 sec</div>
+                <!-- Score display -->
+                <div class="score-container-final">
+                    <div class="score-text">00080</div>
+                </div>
+                
+                <!-- Accuracy display -->
+                <div class="accuracy-container-final">
+                    <div class="accuracy">75%</div>
+                </div>
+                
+                <!-- Total time display -->
+                <div class="total-time-container-final">
+                    <div class="total-time">01:30</div>
+                </div>
+                
+                <!-- Score submission status -->
+                <div class="score-submission-status"></div>
             </div>
         </div>
     </div>
+
+    <!-- JSONP script for API calls -->
+    <script id="jsonpScript"></script>
 
     <audio id="popSound" src="sounds/pop.wav"></audio>
     <audio id="countdownSound" src="sounds/countdown.wav"></audio>
