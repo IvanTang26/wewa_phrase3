@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Member Check Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .container {
+            background-color: #f5f5f5;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #result {
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: white;
+            border-radius: 4px;
+            white-space: pre-wrap;
+        }
+
+        .loading {
+            display: none;
+            color: #666;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Check Member Status</h1>
+        <div class="input-group">
+            <input type="tel" id="phoneNumber" placeholder="Enter phone number">
+            <button onclick="checkMember()">Check Member</button>
+        </div>
+        <div class="loading" id="loading">Checking...</div>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        function checkMember() {
+            const phoneNumber = document.getElementById('phoneNumber').value;
+            const resultDiv = document.getElementById('result');
+            const loadingDiv = document.getElementById('loading');
+
+            // Show loading state
+            loadingDiv.style.display = 'block';
+            resultDiv.textContent = '';
+
+            const myHeaders = new Headers();
+            myHeaders.append("Content-Type", "application/json");
+
+            const raw = JSON.stringify({
+                "phone_number": phoneNumber
+            });
+
+            const requestOptions = {
+                method: "POST",
+                headers: myHeaders,
+                body: raw,
+                redirect: "manual"
+            };
+
+            fetch("https://www-wewapakpakpak-uat.nmission.com/api/checkMember", requestOptions)
+                .then((response) => response.text())
+                .then((result) => {
+                    resultDiv.textContent = result;
+                    try {
+                        // Try to pretty-print JSON if response is JSON
+                        const parsed = JSON.parse(result);
+                        resultDiv.textContent = JSON.stringify(parsed, null, 4);
+                    } catch (e) {
+                        // If not JSON, leave as plain text
+                    }
+                })
+                .catch((error) => {
+                    resultDiv.textContent = `Error: ${error.message}`;
+                })
+                .finally(() => {
+                    loadingDiv.style.display = 'none';
+                });
+        }
+    </script>
+</body>
+</html>
