@@ -64,7 +64,57 @@ class WhackAMole {
         // Set volume for bubble explosion sound
         this.sounds.bubbleExplosion.volume = 1.0;
 
+        // Preload critical images
+        this.preloadImages();
+        
         this.initializeEventListeners();
+    }
+    
+    preloadImages() {
+        console.log('%cPreloading critical game images...', 'color: purple; font-weight: bold;');
+        
+        const imagesToPreload = [
+            '12.mode1/mode1.gif',
+            '13.mode2/mode2.gif',
+            '4.background/game3_background_01.gif',
+            '4.background/game3_background_02.gif',
+            'images/explosion.gif',
+            '10.waiting/waiting_01.gif',
+            '10.waiting/waiting_02.gif'
+        ];
+        
+        // Create an array to track loaded images
+        this.preloadedImages = [];
+        
+        imagesToPreload.forEach((imageSrc, index) => {
+            const img = new Image();
+            
+            img.onload = () => {
+                console.log(`Preloaded image (${index + 1}/${imagesToPreload.length}): ${imageSrc}`);
+                this.preloadedImages.push(img);
+                
+                // If this is a mode overlay image, update the actual image in the DOM
+                if (imageSrc === '12.mode1/mode1.gif' && this.modeOverlays.mode1) {
+                    const modeImg = this.modeOverlays.mode1.querySelector('img');
+                    if (modeImg) {
+                        console.log('Updating mode1 image with preloaded version');
+                        modeImg.src = img.src;
+                    }
+                } else if (imageSrc === '13.mode2/mode2.gif' && this.modeOverlays.mode2) {
+                    const modeImg = this.modeOverlays.mode2.querySelector('img');
+                    if (modeImg) {
+                        console.log('Updating mode2 image with preloaded version');
+                        modeImg.src = img.src;
+                    }
+                }
+            };
+            
+            img.onerror = () => {
+                console.error(`Failed to preload image: ${imageSrc}`);
+            };
+            
+            img.src = imageSrc;
+        });
     }
 
     initializeEventListeners() {
@@ -131,9 +181,15 @@ class WhackAMole {
                 this.selectedGameBackground = area.dataset.gameBackground;
                 this.selectedWaitingImage = area.dataset.waiting;
                 
-                console.log(`Mode area clicked! Selected mode ${this.selectedMode}`);
+                console.log(`%cMode ${this.selectedMode} selected!`, 'color: red; font-weight: bold;');
                 console.log(`Game background: ${this.selectedGameBackground}`);
                 console.log(`Waiting image: ${this.selectedWaitingImage}`);
+                
+                // Clear any existing overlay timeout
+                if (this.overlayTimeoutId) {
+                    clearTimeout(this.overlayTimeoutId);
+                    this.overlayTimeoutId = null;
+                }
                 
                 // Navigate to rules
                 this.switchScreen('mode', 'rules');
@@ -576,6 +632,12 @@ class WhackAMole {
         });
         
         if (this.modeOverlays && this.modeOverlays.mode1 && this.modeOverlays.mode2) {
+            // Clear any existing timeout
+            if (this.overlayTimeoutId) {
+                clearTimeout(this.overlayTimeoutId);
+                this.overlayTimeoutId = null;
+            }
+            
             // Ensure all overlays are hidden before showing the selected one
             this.modeOverlays.mode1.classList.remove('active');
             this.modeOverlays.mode2.classList.remove('active');
@@ -585,11 +647,6 @@ class WhackAMole {
             
             // IMPORTANT: Start the game after showing the overlay
             this.startGame();
-            
-            // Store the timeout ID and clear any existing timeout
-            if (this.overlayTimeoutId) {
-                clearTimeout(this.overlayTimeoutId);
-            }
             
             // Hide the mode overlay after 5 seconds (increased from 3)
             console.log('Setting timeout to hide mode overlay in 5 seconds...');
@@ -605,7 +662,7 @@ class WhackAMole {
     }
     
     showModeOverlay() {
-        console.log(`%cShowing mode overlay for mode: ${this.selectedMode}`, 'color: red; font-weight: bold;');
+        console.log(`%cShowing mode overlay for mode: ${this.selectedMode}`, 'color: red; font-weight: bold; font-size: 14px;');
         
         // Make sure both overlays exist
         if (!this.modeOverlays.mode1 || !this.modeOverlays.mode2) {
@@ -613,42 +670,152 @@ class WhackAMole {
             return;
         }
         
-        // First, remove active class from all overlays
-        this.modeOverlays.mode1.classList.remove('active');
-        this.modeOverlays.mode2.classList.remove('active');
+        // Get direct references to the elements
+        const mode1Element = this.modeOverlays.mode1;
+        const mode2Element = this.modeOverlays.mode2;
         
-        // Force a reflow to ensure the DOM updates
-        void this.modeOverlays.mode1.offsetWidth;
-        void this.modeOverlays.mode2.offsetWidth;
+        // Log the initial state for debugging
+        console.log('Initial state - Mode1:', {
+            element: mode1Element,
+            display: window.getComputedStyle(mode1Element).display,
+            opacity: window.getComputedStyle(mode1Element).opacity,
+            visibility: window.getComputedStyle(mode1Element).visibility,
+            zIndex: window.getComputedStyle(mode1Element).zIndex
+        });
+        console.log('Initial state - Mode2:', {
+            element: mode2Element,
+            display: window.getComputedStyle(mode2Element).display,
+            opacity: window.getComputedStyle(mode2Element).opacity,
+            visibility: window.getComputedStyle(mode2Element).visibility,
+            zIndex: window.getComputedStyle(mode2Element).zIndex
+        });
         
-        // Then set the active class only on the selected overlay
+        // First, hide both overlays
+        mode1Element.classList.remove('active');
+        mode2Element.classList.remove('active');
+        
+        // Force a reflow
+        void mode1Element.offsetWidth;
+        void mode2Element.offsetWidth;
+        
+        // Set direct style properties
+        mode1Element.style.display = 'none';
+        mode2Element.style.display = 'none';
+        mode1Element.style.opacity = '0';
+        mode2Element.style.opacity = '0';
+        mode1Element.style.visibility = 'hidden';
+        mode2Element.style.visibility = 'hidden';
+        
+        // Another reflow
+        void mode1Element.offsetWidth;
+        void mode2Element.offsetWidth;
+        
+        // Then activate only the selected overlay
         if (this.selectedMode === 1) {
             console.log('%cActivating mode 1 overlay', 'color: green; font-weight: bold;');
-            console.log('Mode 1 overlay element:', this.modeOverlays.mode1);
-            this.modeOverlays.mode1.classList.add('active');
+            
+            // Show mode 1 overlay
+            mode1Element.style.display = 'block';
+            mode1Element.style.visibility = 'visible';
+            mode1Element.style.zIndex = '150';
+            mode1Element.classList.add('active');
+            
+            // Force rendering before setting opacity
+            void mode1Element.offsetWidth;
+            
+            // Fade in the overlay
+            mode1Element.style.opacity = '1';
+            
             document.body.classList.add('mode-1-active');
             document.body.classList.remove('mode-2-active');
+            
+            // Verify the image source
+            const imgElement = mode1Element.querySelector('img');
+            if (imgElement) {
+                console.log('Mode 1 image src:', imgElement.src);
+                // Ensure image is loaded
+                if (!imgElement.complete) {
+                    console.log('Mode 1 image is still loading, forcing reload');
+                    const originalSrc = imgElement.src;
+                    imgElement.src = originalSrc;
+                }
+            } else {
+                console.error('No image found in mode1 overlay!');
+            }
+            
         } else if (this.selectedMode === 2) {
             console.log('%cActivating mode 2 overlay', 'color: green; font-weight: bold;');
-            console.log('Mode 2 overlay element:', this.modeOverlays.mode2);
-            this.modeOverlays.mode2.classList.add('active');
+            
+            // Show mode 2 overlay
+            mode2Element.style.display = 'block';
+            mode2Element.style.visibility = 'visible';
+            mode2Element.style.zIndex = '150';
+            mode2Element.classList.add('active');
+            
+            // Force rendering before setting opacity
+            void mode2Element.offsetWidth;
+            
+            // Fade in the overlay
+            mode2Element.style.opacity = '1';
+            
             document.body.classList.add('mode-2-active');
             document.body.classList.remove('mode-1-active');
+            
+            // Verify the image source
+            const imgElement = mode2Element.querySelector('img');
+            if (imgElement) {
+                console.log('Mode 2 image src:', imgElement.src);
+                // Ensure image is loaded
+                if (!imgElement.complete) {
+                    console.log('Mode 2 image is still loading, forcing reload');
+                    const originalSrc = imgElement.src;
+                    imgElement.src = originalSrc;
+                }
+            } else {
+                console.error('No image found in mode2 overlay!');
+            }
+            
         } else {
             // Default to mode 1 if no mode was selected
             console.log('%cNo mode selected, defaulting to mode 1 overlay', 'color: orange; font-weight: bold;');
-            this.modeOverlays.mode1.classList.add('active');
+            
+            // Show mode 1 overlay
+            mode1Element.style.display = 'block';
+            mode1Element.style.visibility = 'visible';
+            mode1Element.style.zIndex = '150';
+            mode1Element.classList.add('active');
+            
+            // Force rendering before setting opacity
+            void mode1Element.offsetWidth;
+            
+            // Fade in the overlay
+            mode1Element.style.opacity = '1';
+            
             document.body.classList.add('mode-1-active');
             document.body.classList.remove('mode-2-active');
         }
         
-        // Log the current class list of both overlays
-        console.log('Mode 1 overlay classes:', this.modeOverlays.mode1.className);
-        console.log('Mode 2 overlay classes:', this.modeOverlays.mode2.className);
+        // Log the final state for debugging
+        setTimeout(() => {
+            console.log('Final state - Mode1:', {
+                display: window.getComputedStyle(mode1Element).display,
+                opacity: window.getComputedStyle(mode1Element).opacity,
+                visibility: window.getComputedStyle(mode1Element).visibility,
+                zIndex: window.getComputedStyle(mode1Element).zIndex,
+                classList: mode1Element.className
+            });
+            console.log('Final state - Mode2:', {
+                display: window.getComputedStyle(mode2Element).display,
+                opacity: window.getComputedStyle(mode2Element).opacity,
+                visibility: window.getComputedStyle(mode2Element).visibility,
+                zIndex: window.getComputedStyle(mode2Element).zIndex,
+                classList: mode2Element.className
+            });
+        }, 100);
     }
     
     hideModeOverlay() {
-        console.log('%cHiding all mode overlays', 'color: blue; font-weight: bold;');
+        console.log('%cHiding all mode overlays', 'color: blue; font-weight: bold; font-size: 14px;');
         
         // Make sure both overlays exist
         if (!this.modeOverlays.mode1 || !this.modeOverlays.mode2) {
@@ -656,17 +823,42 @@ class WhackAMole {
             return;
         }
         
+        // Get direct references to the elements
+        const mode1Element = this.modeOverlays.mode1;
+        const mode2Element = this.modeOverlays.mode2;
+        
         // Remove active class from all overlays
-        this.modeOverlays.mode1.classList.remove('active');
-        this.modeOverlays.mode2.classList.remove('active');
+        mode1Element.classList.remove('active');
+        mode2Element.classList.remove('active');
         
         // Also remove mode indicator classes from body
         document.body.classList.remove('mode-1-active');
         document.body.classList.remove('mode-2-active');
         
-        // Log the current class list of both overlays after hiding
-        console.log('Mode 1 overlay classes after hiding:', this.modeOverlays.mode1.className);
-        console.log('Mode 2 overlay classes after hiding:', this.modeOverlays.mode2.className);
+        // First fade out
+        mode1Element.style.opacity = '0';
+        mode2Element.style.opacity = '0';
+        
+        // After a small delay, hide completely
+        setTimeout(() => {
+            mode1Element.style.visibility = 'hidden';
+            mode2Element.style.visibility = 'hidden';
+            mode1Element.style.display = 'none';
+            mode2Element.style.display = 'none';
+            
+            console.log('Overlays hidden - Mode1:', {
+                display: window.getComputedStyle(mode1Element).display,
+                opacity: window.getComputedStyle(mode1Element).opacity,
+                visibility: window.getComputedStyle(mode1Element).visibility,
+                classList: mode1Element.className
+            });
+            console.log('Overlays hidden - Mode2:', {
+                display: window.getComputedStyle(mode2Element).display,
+                opacity: window.getComputedStyle(mode2Element).opacity,
+                visibility: window.getComputedStyle(mode2Element).visibility,
+                classList: mode2Element.className
+            });
+        }, 300);
     }
 
     startGame() {
@@ -1071,52 +1263,17 @@ class WhackAMole {
         
         console.log(`Submitting score: ${score}, accuracy: ${accuracy}%, phone: ${phoneNumber}, name: ${name}, email: ${email}`);
         
-        // Show pending status
-        this.showScoreSubmissionStatus('Submitting score...', 'pending');
-        
         // Try multiple methods to handle CORS issues, similar to checkMember
         this.trySubmitScoreWithCorsProxy(phoneNumber, name, score, accuracy, email)
-            .then(result => {
-                this.showScoreSubmissionStatus('Score submitted successfully!', 'success');
-                return result;
-            })
             .catch(error => {
                 console.error("CORS proxy score submission error:", error);
                 return this.trySubmitScoreNoCors(phoneNumber, name, score, accuracy, email);
-            })
-            .then(result => {
-                this.showScoreSubmissionStatus('Score submitted successfully!', 'success');
-                return result;
             })
             .catch(error => {
                 console.error("No-CORS score submission error:", error);
                 // Final fallback: simulate a successful response for testing
                 this.simulateSuccessfulScoreSubmission(phoneNumber, name, score, accuracy, email);
-                this.showScoreSubmissionStatus('Score submitted successfully!', 'success');
-            })
-            .catch(error => {
-                console.error("All score submission methods failed:", error);
-                this.showScoreSubmissionStatus('Failed to submit score. Please try again later.', 'error');
             });
-    }
-    
-    showScoreSubmissionStatus(message, type) {
-        const statusElement = this.screens.finalScore.querySelector('.score-submission-status');
-        if (statusElement) {
-            statusElement.textContent = message;
-            statusElement.className = 'score-submission-status';
-            
-            if (type) {
-                statusElement.classList.add(type);
-            }
-            
-            // Auto-hide success/error messages after 5 seconds
-            if (type === 'success' || type === 'error') {
-                setTimeout(() => {
-                    statusElement.style.opacity = '0';
-                }, 5000);
-            }
-        }
     }
     
     trySubmitScoreWithCorsProxy(phoneNumber, name, score, accuracy, email) {
@@ -1314,5 +1471,6 @@ class WhackAMole {
 
 // Initialize the game
 window.addEventListener('load', () => {
+    console.log('%cGame initializing...', 'color: blue; font-weight: bold; font-size: 16px;');
     new WhackAMole();
 }); 

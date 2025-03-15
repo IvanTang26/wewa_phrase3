@@ -629,38 +629,6 @@ body {
     top: 72%;
 }
 
-.score-submission-status {
-    position: absolute;
-    bottom: 10%;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 8px 16px;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: bold;
-    text-align: center;
-    opacity: 0;
-    transition: opacity 0.3s;
-    background-color: rgba(0, 0, 0, 0.7);
-    color: white;
-    max-width: 80%;
-}
-
-.score-submission-status.success {
-    background-color: rgba(0, 128, 0, 0.7);
-    opacity: 1;
-}
-
-.score-submission-status.error {
-    background-color: rgba(255, 0, 0, 0.7);
-    opacity: 1;
-}
-
-.score-submission-status.pending {
-    background-color: rgba(0, 0, 0, 0.7);
-    opacity: 1;
-}
-
 /* iPhone-specific adjustments */
 @supports (-webkit-touch-callout: none) {
     /* CSS specific to iOS devices */
@@ -944,35 +912,45 @@ body {
 
 /* Position for the first mode area (top option) */
 .mode-area-1 {
-    top: 53%;
+    top: 26%;
     left: 50%;
     transform: translate(-50%, -50%);
 }
 
 /* Position for the second mode area (bottom option) */
 .mode-area-2 {
-    top: 73%;
+    top: 46%;
     left: 50%;
     transform: translate(-50%, -50%);
 }
 
 .mode-overlay {
     position: absolute;
+    top: 0;
+    left: 0;
     width: 100%;
     height: 100%;
-    z-index: 150; /* Increased z-index to be above all game elements */
+    z-index: 200; /* Increased z-index to be above all other game elements */
     pointer-events: none; /* Allow clicks to pass through to the game elements */
-    opacity: 0; /* Hidden by default */
-    visibility: hidden; /* Hidden by default */
-    transition: opacity 0.5s ease;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease; /* Faster transition */
 }
 
 .mode-overlay.active {
-    opacity: 1; /* Visible when active */
-    visibility: visible; /* Visible when active */
-    /* Uncomment for debugging:
-    background-color: rgba(255, 0, 0, 0.2); 
-    */
+    opacity: 1;
+    visibility: visible;
+    display: block !important; /* Force display when active */
+}
+
+/* Ensure images inside mode overlays are properly sized */
+.mode-overlay img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 #phoneNumber:focus,
